@@ -20,7 +20,7 @@ function AdminLogin() {
       );
 
       if (response.status === 200) {
-        navigate("https://attendancetracker-smoky.vercel.app/admin/dashboard");
+        navigate("/admin/dashboard");
       }
     } catch (error) {
       setError("Login failed. Please check your credentials.");
