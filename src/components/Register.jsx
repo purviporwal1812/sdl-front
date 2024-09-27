@@ -28,8 +28,6 @@ const Register = () => {
       await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
       await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
       await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL + 'face_landmark_68_tiny/');
-      await faceapi.nets.tinyYolov2.loadFromUri(MODEL_URL + 'tiny_yolov2/');
-      await faceapi.nets.tinyYolov2.loadFromUri(MODEL_URL + 'tiny_yolov2_separable_conv/');
 
 
       } catch (error) {
