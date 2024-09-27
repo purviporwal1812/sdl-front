@@ -13,16 +13,27 @@ const Register = () => {
   const [faceDescriptor, setFaceDescriptor] = useState(null);
   const webcamRef = useRef(null);
   const navigate = useNavigate();
+  
 
   useEffect(() => {
-    const loadModels = async () => {
-      await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-      await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-      await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
-      console.log('Models loaded successfully');
+    const loadModel = async () => {
+      const modelURL = `${window.location.origin}/models/tiny_face_detector/tiny_face_detector_model-weights_manifest.json`;
+      
+      try {
+        const response = await fetch(modelURL);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const modelManifest = await response.json();
+        // Load your model using the manifest...
+      } catch (error) {
+        console.error('Error loading model:', error);
+      }
     };
-
-    loadModels();
+    
+    // Call the function to load the model
+    loadModel();
+    
   }, []);
 
   const captureFace = async () => {
