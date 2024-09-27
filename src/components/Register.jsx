@@ -1,23 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import "./styles/Register.css";
+import Webcam from 'react-webcam'; // Import Webcam
+import * as faceapi from 'face-api.js'; // Import face-api.js
+import './styles/Register.css';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
+  const [faceDescriptor, setFaceDescriptor] = useState(null);
+  const webcamRef = useRef(null);
   const navigate = useNavigate();
+  
+
+  useEffect(() => {
+    const loadModel = async () => {
+      const MODEL_URL = `${window.location.origin}/models/`;
+      try {
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
+      } catch (error) {
+        console.error('Error loading model:', error);
+      }
+    };
+    
+    
+    // Call the function to load the model
+    loadModel();
+    
+  }, []);
+
+  const captureFace = async () => {
+    const video = webcamRef.current.video;
+    const detection = await faceapi
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()) // Use tinyFaceDetector
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+  
+    if (detection) {
+      setFaceDescriptor(detection.descriptor);
+      console.log('Face descriptor captured:', detection.descriptor);
+    } else {
+      setError('Face not detected. Please try again.');
+    }
+  };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!faceDescriptor) {
+      setError('Please capture your face before registering.');
+      return;
+    }
 
     try {
       const response = await axios.post('https://sdl-back.vercel.app/users/register', {
         email,
         password,
         phone_number: phoneNumber,
+        face_descriptor: Array.from(faceDescriptor), // Convert to array
       });
 
       if (response.status === 201) {
@@ -35,9 +80,18 @@ const Register = () => {
       <div className="logo">
         <img src="/profile.jpg" alt="Logo" />
       </div>
-      <div className="name">
-        Register
-      </div>
+      <div className="name">Register</div>
+      
+      {/* Webcam for face capture */}
+      <Webcam
+        audio={false}
+        ref={webcamRef}
+        screenshotFormat="image/jpeg"
+        width={320}
+        height={240}
+      />
+      <button onClick={captureFace} className="btn">Capture Face</button>
+      
       <form onSubmit={handleSubmit}>
         {error && <p className="error">{error}</p>}
         
@@ -73,6 +127,7 @@ const Register = () => {
         
         <button type="submit" className="btn">Register</button>
       </form>
+      
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
         <Link to="/users/login">Already Registered?</Link>
       </div>

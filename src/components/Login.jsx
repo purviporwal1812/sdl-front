@@ -15,7 +15,7 @@ function Login() {
     try {
       const response = await axios.post(
         "https://sdl-back.vercel.app/users/login",
-        { email, password },
+        {  email, password },
         { withCredentials: true }
       );
 
