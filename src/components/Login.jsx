@@ -1,13 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Webcam from "react-webcam";
+import * as faceapi from "face-api.js";
 import "./styles/Login.css";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [faceDescriptor, setFaceDescriptor] = useState(null);
+  const webcamRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadModels = async () => {
+      const MODEL_URL = `${window.location.origin}/models`;
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+    };
+
+    loadModels();
+  }, []);
+
+  const captureFace = async () => {
+    const video = webcamRef.current.video;
+    const detection = await faceapi
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (detection) {
+      setFaceDescriptor(detection.descriptor);
+      console.log("Face descriptor captured:", detection.descriptor);
+    } else {
+      setError("Face not detected. Please try again.");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,7 +45,7 @@ function Login() {
     try {
       const response = await axios.post(
         "https://sdl-back.vercel.app/users/login",
-        {  email, password },
+        { email, password, face_descriptor: faceDescriptor ? Array.from(faceDescriptor) : null }, // Send face descriptor
         { withCredentials: true }
       );
 
@@ -36,6 +66,12 @@ function Login() {
         </div>
         <div className="name">Login</div>
         {error && <div className="alert alert-danger">{error}</div>}
+        
+        <Webcam ref={webcamRef} width={320} height={240} />
+        <button className="btn" onClick={captureFace}>
+          Capture Face
+        </button>
+
         <form onSubmit={handleSubmit}>
           <div className="form-field">
             <i className="fas fa-user"></i>
