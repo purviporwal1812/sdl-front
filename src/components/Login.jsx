@@ -16,9 +16,9 @@ function Login() {
   useEffect(() => {
     const loadModels = async () => {
       const MODEL_URL = `${window.location.origin}/models`;
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
     };
 
     loadModels();
