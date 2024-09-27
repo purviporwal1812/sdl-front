@@ -13,30 +13,36 @@ const Register = () => {
   const [faceDescriptor, setFaceDescriptor] = useState(null);
   const webcamRef = useRef(null);
   const navigate = useNavigate();
+  
 
   useEffect(() => {
-    const loadModels = async () => {
-      const modelURL = `${window.location.origin}/models/tiny_face_detector/`;
+    const loadModel = async () => {
+      const MODEL_URL = `${window.location.origin}/models`;
+      
       try {
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(modelURL),
-          faceapi.nets.faceLandmark68Net.loadFromUri(modelURL),
-          faceapi.nets.faceRecognitionNet.loadFromUri(modelURL),
-        ]);
-        console.log('Models loaded successfully');
+        const response = await fetch(MODEL_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'face_landmark_68/');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'face_recognition/');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'face_landmark_68_tiny/');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_yolov2/');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_yolov2_seperale_conv/');
+
       } catch (error) {
-        console.error('Error loading models:', error);
-        setError('Failed to load face detection models.');
+        console.error('Error loading model:', error);
       }
     };
     
-    loadModels();
+    // Call the function to load the model
+    loadModel();
+    
   }, []);
 
   const captureFace = async () => {
     const video = webcamRef.current.video;
-    if (!video) return;
-
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
