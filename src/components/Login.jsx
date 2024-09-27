@@ -14,14 +14,18 @@ function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadModels = async () => {
-      const MODEL_URL = `${window.location.origin}/models`;
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
+    const loadModel = async () => {
+      const MODEL_URL = `${window.location.origin}/models/`;
+      try {
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
         await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
+      } catch (error) {
+        console.error('Error loading model:', error);
+      }
     };
 
-    loadModels();
+    loadModel();
   }, []);
 
   const captureFace = async () => {
