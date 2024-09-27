@@ -13,28 +13,38 @@ function Login() {
   const webcamRef = useRef(null);
   const navigate = useNavigate();
 
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+
   useEffect(() => {
     const loadModel = async () => {
       const MODEL_URL = `${window.location.origin}/models/`;
+  
       try {
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
         await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
+        setModelsLoaded(true); // Set to true when models are fully loaded
+        console.log("Models loaded successfully");
       } catch (error) {
         console.error('Error loading model:', error);
       }
     };
-
+  
     loadModel();
   }, []);
-
+  
   const captureFace = async () => {
+    if (!modelsLoaded) {
+      setError("Models are still loading. Please wait.");
+      return;
+    }
+  
     const video = webcamRef.current.video;
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
-
+  
     if (detection) {
       setFaceDescriptor(detection.descriptor);
       console.log("Face descriptor captured:", detection.descriptor);
@@ -42,6 +52,7 @@ function Login() {
       setError("Face not detected. Please try again.");
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
