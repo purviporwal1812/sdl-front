@@ -24,12 +24,12 @@ const Register = () => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'face_landmark_68/');
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'face_recognition/');
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'face_landmark_68_tiny/');
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_yolov2/');
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_yolov2_seperale_conv/');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/tiny_face_detector_model-weights_manifest.json');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'face_landmark_68/face_landmark_68_model-weights_manifest.json');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'face_recognition/face_recognition_model-weights_manifest.json');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'face_landmark_68_tiny/face_landmark_68_tiny_model-weights_manifest.json');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_yolov2/tiny_yolov2_model-weights_manifest.json');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_yolov2_seperale_conv/tiny_yolov2_separable_conv_model-weights_manifest.json');
 
       } catch (error) {
         console.error('Error loading model:', error);
