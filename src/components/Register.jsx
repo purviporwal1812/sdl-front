@@ -17,23 +17,16 @@ const Register = () => {
 
   useEffect(() => {
     const loadModel = async () => {
-      const MODEL_URL = `${window.location.origin}/models`;
-      
+      const MODEL_URL = `${window.location.origin}/models/`;
       try {
-        const response = await fetch(MODEL_URL);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
-      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
-      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
-      await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL + 'face_landmark_68_tiny/');
-
-
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
       } catch (error) {
         console.error('Error loading model:', error);
       }
     };
+    
     
     // Call the function to load the model
     loadModel();
@@ -43,10 +36,10 @@ const Register = () => {
   const captureFace = async () => {
     const video = webcamRef.current.video;
     const detection = await faceapi
-      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()) // Use tinyFaceDetector
       .withFaceLandmarks()
       .withFaceDescriptor();
-    
+  
     if (detection) {
       setFaceDescriptor(detection.descriptor);
       console.log('Face descriptor captured:', detection.descriptor);
@@ -54,6 +47,7 @@ const Register = () => {
       setError('Face not detected. Please try again.');
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
