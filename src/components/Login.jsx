@@ -56,14 +56,16 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await axios.post(
         "https://sdl-back.vercel.app/users/login",
         { email, password, face_descriptor: faceDescriptor ? Array.from(faceDescriptor) : null }, // Send face descriptor
         { withCredentials: true }
       );
-
+      if (!faceDescriptor) {
+        setError("Face not captured. Please capture your face before logging in.");
+        return;
+      }
       if (response.status === 200) {
         navigate("/mark-attendance");
       }
