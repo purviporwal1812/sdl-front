@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import Webcam from 'react-webcam'; // Import Webcam
-import * as faceapi from 'face-api.js'; // Import face-api.js
+import Webcam from 'react-webcam';
+import * as faceapi from 'face-api.js';
 import './styles/Register.css';
 
 const Register = () => {
@@ -13,7 +13,6 @@ const Register = () => {
   const [faceDescriptor, setFaceDescriptor] = useState(null);
   const webcamRef = useRef(null);
   const navigate = useNavigate();
-  
 
   useEffect(() => {
     const loadModel = async () => {
@@ -26,20 +25,15 @@ const Register = () => {
         console.error('Error loading model:', error);
       }
     };
-    
-    
-    // Call the function to load the model
     loadModel();
-    
   }, []);
 
   const captureFace = async () => {
     const video = webcamRef.current.video;
     const detection = await faceapi
-      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()) // Use tinyFaceDetector
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
-  
     if (detection) {
       setFaceDescriptor(detection.descriptor);
       console.log('Face descriptor captured:', detection.descriptor);
@@ -47,11 +41,9 @@ const Register = () => {
       setError('Face not detected. Please try again.');
     }
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!faceDescriptor) {
       setError('Please capture your face before registering.');
       return;
@@ -62,7 +54,7 @@ const Register = () => {
         email,
         password,
         phone_number: phoneNumber,
-        face_descriptor: Array.from(faceDescriptor), // Convert to array
+        face_descriptor: Array.from(faceDescriptor),
       });
 
       if (response.status === 201) {
@@ -76,62 +68,49 @@ const Register = () => {
   };
 
   return (
-    <div className="wrapper">
-      <div className="logo">
-        <img src="/profile.jpg" alt="Logo" />
+      <div className="register-page">
+        <div className="hero-section">
+          <div className="hero-overlay" />
+          <div className="hero-text">
+            <p>Secure your spot—register with a glance.</p>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" className="webcam-feed" />
+          <button onClick={captureFace} className="btn capture-btn">Capture Face</button>
+
+          <form onSubmit={handleSubmit} noValidate>
+            {error && <p className="error">{error}</p>}
+
+            {/** Floating-label fields **/}
+            <div className="form-field">
+              <input id="email" type="email" value={email} required 
+                     onChange={e => setEmail(e.target.value)} placeholder=" " />
+              <label htmlFor="email">Email Address</label>
+            </div>
+
+            <div className="form-field">
+              <input id="phone" type="text" value={phoneNumber} required 
+                     onChange={e => setPhoneNumber(e.target.value)} placeholder=" " />
+              <label htmlFor="phone">Phone Number</label>
+            </div>
+
+            <div className="form-field">
+              <input id="password" type="password" value={password} required 
+                     onChange={e => setPassword(e.target.value)} placeholder=" " />
+              <label htmlFor="password">Password</label>
+            </div>
+
+            <button type="submit" className="btn submit-btn">Register</button>
+          </form>
+
+          <div className="links-row">
+            <Link to="/">Back to Home</Link>
+            <Link to="/users/login">Already Registered?</Link>
+          </div>
+        </div>
       </div>
-      <div className="name">Register</div>
-      
-      {/* Webcam for face capture */}
-      <Webcam
-        audio={false}
-        ref={webcamRef}
-        screenshotFormat="image/jpeg"
-        width={320}
-        height={240}
-      />
-      <button onClick={captureFace} className="btn">Capture Face</button>
-      
-      <form onSubmit={handleSubmit}>
-        {error && <p className="error">{error}</p>}
-        
-        <div className="form-field">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        
-        <div className="form-field">
-          <input
-            type="text"
-            placeholder="Phone Number"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            required
-          />
-        </div>
-        
-        <div className="form-field">
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        
-        <button type="submit" className="btn">Register</button>
-      </form>
-      
-      <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <Link to="/users/login">Already Registered?</Link>
-      </div>
-    </div>
   );
 };
 

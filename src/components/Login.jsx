@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Webcam from "react-webcam";
 import * as faceapi from "face-api.js";
+
 import "./styles/Login.css";
 
 function Login() {
@@ -18,54 +19,54 @@ function Login() {
   useEffect(() => {
     const loadModel = async () => {
       const MODEL_URL = `${window.location.origin}/models/`;
-  
       try {
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
         await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
-        setModelsLoaded(true); // Set to true when models are fully loaded
+        setModelsLoaded(true);
         console.log("Models loaded successfully");
       } catch (error) {
         console.error('Error loading model:', error);
       }
     };
-  
     loadModel();
   }, []);
-  
+
   const captureFace = async () => {
     if (!modelsLoaded) {
       setError("Models are still loading. Please wait.");
       return;
     }
-  
+
     const video = webcamRef.current.video;
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
-  
+
     if (detection) {
       setFaceDescriptor(detection.descriptor);
       console.log("Face descriptor captured:", detection.descriptor);
+      setError(""); // Clear error if face detected
     } else {
       setError("Face not detected. Please try again.");
     }
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "https://sdl-back.vercel.app/users/login",
-        { email, password, face_descriptor: faceDescriptor ? Array.from(faceDescriptor) : null }, // Send face descriptor
-        { withCredentials: true }
-      );
       if (!faceDescriptor) {
         setError("Face not captured. Please capture your face before logging in.");
         return;
       }
+
+      const response = await axios.post(
+        "https://sdl-back.vercel.app/users/login",
+        { email, password, face_descriptor: Array.from(faceDescriptor) },
+        { withCredentials: true }
+      );
+
       if (response.status === 200) {
         navigate("/mark-attendance");
       }
@@ -76,48 +77,55 @@ function Login() {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center min-vh-100">
-      <div className="wrapper">
-        <div className="logo">
-          <img src="/profile.jpg" alt="Logo" />
+    <div className="login-page">
+      <section className="hero-section">
+        <div className="hero-overlay"></div>
+        <div className="hero-text">
+          <h1>Welcome Back!</h1>
         </div>
-        <div className="name">Login</div>
-        {error && <div className="alert alert-danger">{error}</div>}
-        
-        <Webcam ref={webcamRef} width={320} height={240} />
-        <button className="btn" onClick={captureFace}>
+      </section>
+
+      <section className="form-section">
+        {error && <div className="error-message">{error}</div>}
+
+        <Webcam ref={webcamRef} className="webcam-feed" />
+        <button type="button" className="btn capture-btn" onClick={captureFace}>
           Capture Face
         </button>
 
         <form onSubmit={handleSubmit}>
           <div className="form-field">
-            <i className="fas fa-user"></i>
             <input
               type="email"
-              placeholder="Email"
+              placeholder=" "
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+            <label>Email Address</label>
           </div>
+
           <div className="form-field">
-            <i className="fas fa-lock"></i>
             <input
               type="password"
-              placeholder="Password"
+              placeholder=" "
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <label>Password</label>
           </div>
-          <button className="btn" type="submit">
+
+          <button type="submit" className="btn">
             Login
           </button>
-          <div className="text-center mt-3">
+
+          <div className="links-row">
             <Link to="/users/register">New User?</Link>
+            <Link to="/forgot-password">Forgot Password?</Link>
           </div>
         </form>
-      </div>
+      </section>
     </div>
   );
 }

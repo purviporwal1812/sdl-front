@@ -1,112 +1,198 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+/* src/styles/Login.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+:root {
+  --primary: #7b2cbf;
+  --secondary: #9d4edd;
+  --accent: #c77dff;
+  --bg-color: #0a0a0a;
+  --text-color: #f8f8f8;
+  --button-bg: #fee440;
+  --button-text: #0a0a0a;
+  --transition: 0.4s ease;
+  --shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
 }
 
-body {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f4f4f4; /* Adjust as needed */
+.login-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-.wrapper {
-    max-width: 350px;
-    min-height: 500px;
-    margin: 80px auto;
-    padding: 40px 30px 30px 30px;
-    background-color: #ecf0f3;
-    border-radius: 15px;
-    box-shadow: 13px 13px 20px #cbced1, -13px -13px 20px #fff;
-}
-
-.logo {
-    width: 80px;
-    margin: auto;
-}
-
-.logo img {
-    width: 100%;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 50%;
-    box-shadow: 0px 0px 3px #5f5f5f,
-                0px 0px 0px 5px #ecf0f3,
-                8px 8px 15px #a7aaa7,
-                -8px -8px 15px #fff;
-}
-
-.wrapper .name {
-    font-weight: 600;
-    font-size: 1.4rem;
-    letter-spacing: 1.3px;
-    padding-left: 10px;
-    color: #555;
-}
-
-.wrapper .form-field {
+/* HERO SECTION */
+.hero-section {
     position: relative;
-    margin-bottom: 20px;
-    padding-left: 10px;
-    border-radius: 20px;
-    box-shadow: inset 8px 8px 8px #cbced1, inset -8px -8px 8px #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    /* allow the section to expand if its content needs more space */
+    min-height: 10vh;    
+    height: auto;        
+  
+    /* give it a little breathing room from the top (adjust to your header height) */
+    padding-top: 4rem;    
+  
+    /* let the text overflow rather than hiding it */
+    overflow: visible;    
+  }
+  
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: bg-pan 30s var(--transition) infinite alternate;
 }
 
-.wrapper .form-field input {
-    width: 100%;
-    display: block;
-    border: none;
-    outline: none;
-    background: none;
-    font-size: 1.2rem;
-    color: #666;
-    padding: 10px 15px 10px 10px;
+@keyframes bg-pan {
+  from { transform: scale(1.1) translateX(0); }
+  to { transform: scale(1.1) translateX(-10%); }
 }
 
-.wrapper .form-field .fas {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #555;
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
 }
 
-.wrapper .btn {
-    box-shadow: none;
-    width: 100%;
-    height: 40px;
-    background-color: #03A9F4;
-    color: #fff;
-    border-radius: 25px;
-    box-shadow: 3px 3px 3px #b1b1b1,
-                -3px -3px 3px #fff;
-    letter-spacing: 1.3px;
+.hero-text {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: var(--text-color);
 }
 
-.wrapper .btn:hover {
-    background-color: #039BE5;
+.hero-text h1 {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
 }
 
-.wrapper a {
-    text-decoration: none;
-    font-size: 0.8rem;
-    color: #03A9F4;
+.hero-text p {
+  font-size: 1.2rem;
 }
 
-.wrapper a:hover {
-    color: #039BE5;
+/* FORM SECTION */
+.form-section {
+  background: var(--bg-color);
+  color: var(--text-color);
+  max-width: 460px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  animation: formFadeIn 1s var(--transition) forwards;
 }
 
-@media(max-width: 380px) {
-    .wrapper {
-        margin: 30px 20px;
-        padding: 40px 15px 15px 15px;
-    }
+@keyframes formFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-field {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 1rem 0.5rem 0.25rem;
+  background: var(--bg-color);
+  border: none;
+  border-bottom: 2px solid var(--primary);
+  font-size: 1rem;
+  outline: none;
+  color: var(--text-color);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.form-field label {
+  position: absolute;
+  top: 1rem;
+  left: 0.5rem;
+  pointer-events: none;
+  transition: all var(--transition);
+  color: var(--text-color);
+}
+
+.form-field input:focus + label,
+.form-field input:not(:placeholder-shown) + label {
+  top: 0;
+  font-size: 0.85rem;
+  color: var(--secondary);
+}
+
+.btn {
+  display: inline-block;
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), transform 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.btn:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+}
+
+.capture-btn {
+  margin-bottom: 1.5rem;
+}
+
+.webcam-feed {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 2px solid var(--primary);
+}
+
+.links-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.links-row a {
+  font-size: 0.9rem;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.links-row a:hover {
+  color: var(--secondary);
+}
+
+.error-message {
+  background: #ff4d4f;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+  .form-section {
+    margin: 1.5rem auto;
+    padding: 1.5rem;
+  }
 }
