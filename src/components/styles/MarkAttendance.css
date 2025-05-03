@@ -48,6 +48,7 @@ html.light {
     text-shadow: 1px 1px var(--accent);
   }
   
+  /* form card */
   .mark-attendance form {
     background: var(--toggle-bg);
     padding: 2rem;
@@ -59,16 +60,27 @@ html.light {
     gap: 1.25rem;
     transition: box-shadow var(--transition);
   }
+  
+  /* hover lift */
   .mark-attendance form:hover {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   }
   
+  /* initial hidden state for animation */
+  .mark-attendance form label,
+  .mark-attendance form input,
+  .mark-attendance form button {
+    opacity: 0;
+  }
+  
+  /* labels */
   .mark-attendance label {
     font-weight: 500;
     margin-bottom: 0.25rem;
     display: block;
   }
   
+  /* inputs */
   .mark-attendance input {
     width: 100%;
     padding: 0.75rem 1rem;
@@ -83,6 +95,7 @@ html.light {
     box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
   }
   
+  /* submit button */
   .mark-attendance button {
     padding: 0.75rem;
     background: var(--button-bg);

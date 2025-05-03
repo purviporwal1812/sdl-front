@@ -1,11 +1,35 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { animate, stagger } from "animejs";
 import "./styles/MarkAttendance.css";
-
 
 function MarkAttendance() {
   const [name, setName] = useState("");
   const [rollNumber, setRollNumber] = useState("");
+
+  // Animate form elements on mount
+  useEffect(() => {
+    animate(
+      ".mark-attendance form label, .mark-attendance form input",
+      {
+        opacity: [0, 1],
+        translateX: [-20, 0],
+        easing: "easeOutQuad",
+        duration: 600,
+        delay: stagger(100)
+      }
+    );
+    animate(
+      ".mark-attendance form button",
+      {
+        scale: [0.8, 1],
+        opacity: [0, 1],
+        easing: "easeOutBack",
+        duration: 800,
+        delay: 500
+      }
+    );
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -19,26 +43,17 @@ function MarkAttendance() {
           try {
             const response = await axios.post(
               "https://sdl-back.vercel.app/mark-attendance",
-              {
-                name,
-                rollNumber,
-                lat,
-                lon,
-              },
-              {
-                withCredentials: true,
-              }
+              { name, rollNumber, lat, lon },
+              { withCredentials: true }
             );
             alert(response.data);
           } catch (error) {
-            if (error.response && error.response.data) {
-              alert(error.response.data);
-            } else {
-              alert("Failed to mark attendance");
-            }
+            alert(
+              error.response?.data || "Failed to mark attendance"
+            );
           }
         },
-        (error) => {
+        () => {
           alert("Failed to get location. Please enable location services.");
         }
       );
@@ -48,7 +63,7 @@ function MarkAttendance() {
   };
 
   return (
-    <div>
+    <div className="mark-attendance">
       <h1>Mark Attendance</h1>
       <form onSubmit={handleSubmit}>
         <label htmlFor="name">Name:</label>
@@ -60,8 +75,7 @@ function MarkAttendance() {
           onChange={(e) => setName(e.target.value)}
           required
         />
-        <br />
-        <br />
+
         <label htmlFor="rollNumber">Roll Number:</label>
         <input
           type="text"
@@ -71,8 +85,7 @@ function MarkAttendance() {
           onChange={(e) => setRollNumber(e.target.value)}
           required
         />
-        <br />
-        <br />
+
         <button type="submit">Mark Attendance</button>
       </form>
     </div>
