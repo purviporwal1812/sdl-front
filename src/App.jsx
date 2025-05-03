@@ -1,4 +1,6 @@
+// src/App.jsx
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 import { animate, stagger } from "animejs";
 import { UserIcon, ShieldCheckIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
@@ -6,14 +8,34 @@ import { UserIcon, ShieldCheckIcon, SunIcon, MoonIcon } from "@heroicons/react/2
 export default function App() {
   const [theme, setTheme] = useState("light");
 
-  // Whenever theme changes, replace the class on <html>
+  // 1) On mount: fetch saved theme
+  useEffect(() => {
+    axios.get("/users/theme", { withCredentials: true })
+      .then(({ data }) => {
+        if (data.theme) setTheme(data.theme);
+      })
+      .catch(() => {
+        /* not logged in? just stay on "light" */
+      });
+  }, []);
+
+  // 2) Whenever theme changes locally, push it to <html> and persist
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove(theme === "light" ? "dark" : "light");
-    root.classList.add(theme);
+    root.classList.toggle("dark", theme === "dark");
+    root.classList.toggle("light", theme === "light");
+
+    // persist to server
+    axios.post(
+      "/users/theme",
+      { theme },
+      { withCredentials: true }
+    ).catch(err => {
+      console.error("Could not save theme:", err);
+    });
   }, [theme]);
 
-  // Entry animations
+  // 3) Entry animations (unchanged)
   useEffect(() => {
     animate(
       ".hero-content h1, .hero-content p",

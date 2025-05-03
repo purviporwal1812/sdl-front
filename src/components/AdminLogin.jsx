@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+// src/components/AdminLogin.jsx
+import React, { useState } from "react"; 
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./styles/Login.css";
+import "./styles/Login.css";   // same CSS as user-login
 
 function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -11,58 +12,62 @@ function AdminLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await axios.post(
         "https://sdl-back.vercel.app/admin/login",
         { email, password },
         { withCredentials: true }
       );
-
       if (response.status === 200) {
         navigate("/admin/dashboard");
       }
-    } catch (error) {
+    } catch (err) {
       setError("Login failed. Please check your credentials.");
-      console.error("Login error:", error);
+      console.error("Login error:", err);
     }
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center min-vh-100">
-      <div className="wrapper">
-        <div className="logo">
-          <img src="/profile.jpg" alt="Logo" />
+    <div className="login-page">
+      <section className="hero-section">
+        <div className="hero-overlay"></div>
+        <div className="hero-text">
+          <h1>Admin Portal</h1>
+          <p>Secure access for administrators</p>
         </div>
-        <div className="name">Admin Login</div>
-        {error && <div className="alert alert-danger">{error}</div>}
+      </section>
+
+      <section className="form-section">
+        {error && <div className="error-message">{error}</div>}
+
         <form onSubmit={handleSubmit}>
           <div className="form-field">
-            <i className="fas fa-user"></i>
             <input
               type="email"
-              placeholder="Email"
+              placeholder=" "
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+            <label>Email Address</label>
           </div>
+
           <div className="form-field">
-            <i className="fas fa-lock"></i>
             <input
               type="password"
-              placeholder="Password"
+              placeholder=" "
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <label>Password</label>
           </div>
-          <button className="btn" type="submit">
+
+          <button type="submit" className="btn">
             Login
           </button>
-       
         </form>
-      </div>
+      </section>
     </div>
   );
 }

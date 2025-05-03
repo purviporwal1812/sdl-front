@@ -13,20 +13,18 @@ function Login() {
   const [faceDescriptor, setFaceDescriptor] = useState(null);
   const webcamRef = useRef(null);
   const navigate = useNavigate();
-
   const [modelsLoaded, setModelsLoaded] = useState(false);
 
   useEffect(() => {
     const loadModel = async () => {
       const MODEL_URL = `${window.location.origin}/models/`;
       try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + "tiny_face_detector/");
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + "face_landmark_68/");
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + "face_recognition/");
         setModelsLoaded(true);
-        console.log("Models loaded successfully");
-      } catch (error) {
-        console.error('Error loading model:', error);
+      } catch (err) {
+        console.error("Error loading model:", err);
       }
     };
     loadModel();
@@ -37,7 +35,6 @@ function Login() {
       setError("Models are still loading. Please wait.");
       return;
     }
-
     const video = webcamRef.current.video;
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
@@ -46,8 +43,7 @@ function Login() {
 
     if (detection) {
       setFaceDescriptor(detection.descriptor);
-      console.log("Face descriptor captured:", detection.descriptor);
-      setError(""); // Clear error if face detected
+      setError("");
     } else {
       setError("Face not detected. Please try again.");
     }
@@ -55,24 +51,20 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!faceDescriptor) {
+      setError("Face not captured. Please capture your face before logging in.");
+      return;
+    }
     try {
-      if (!faceDescriptor) {
-        setError("Face not captured. Please capture your face before logging in.");
-        return;
-      }
-
       const response = await axios.post(
         "https://sdl-back.vercel.app/users/login",
         { email, password, face_descriptor: Array.from(faceDescriptor) },
         { withCredentials: true }
       );
-
-      if (response.status === 200) {
-        navigate("/mark-attendance");
-      }
-    } catch (error) {
+      if (response.status === 200) navigate("/mark-attendance");
+    } catch (err) {
       setError("Login failed. Please check your credentials.");
-      console.error("Login error:", error);
+      console.error("Login error:", err);
     }
   };
 
@@ -88,7 +80,13 @@ function Login() {
       <section className="form-section">
         {error && <div className="error-message">{error}</div>}
 
-        <Webcam ref={webcamRef} className="webcam-feed" />
+        <Webcam
+          ref={webcamRef}
+          className="webcam-feed"
+          audio={false}
+          videoConstraints={{ facingMode: "user" }}
+        />
+
         <button type="button" className="btn capture-btn" onClick={captureFace}>
           Capture Face
         </button>
