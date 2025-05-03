@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import "./MarkAttendance.css";
+import "./styles/MarkAttendance.css";
 
 
 function MarkAttendance() {
