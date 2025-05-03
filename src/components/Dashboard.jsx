@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import anime from "animejs";
+import "./Dashboard.css";
 
 function Dashboard() {
   const [rooms, setRooms] = useState([]);

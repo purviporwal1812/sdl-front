@@ -1,0 +1,106 @@
+/* MarkAttendance.css */
+
+html.light {
+    --transition: 0.3s ease;
+    --bg-color: #f9f9fb;
+    --text-color: #2e2e3e;
+    --primary: #6c5ce7;
+    --secondary: #00b894;
+    --accent: #fdcb6e;
+    --toggle-bg: #ffffff;
+    --toggle-color: #2e2e3e;
+    --button-bg: #4F46E5;
+    --button-text: #ffffff;
+    --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  html.dark {
+    --transition: 0.3s ease;
+    --bg-color: #000000;
+    --text-color: #e0e0e0;
+    --primary: #a29bfe;
+    --secondary: #00cec9;
+    --accent: #ffeaa7;
+    --toggle-bg: #2e303c;
+    --toggle-color: #e0e0e0;
+    --button-bg: #F3E8FF;
+    --button-text: #4F46E5;
+    --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mark-attendance {
+    background: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    transition: background var(--transition), color var(--transition);
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .mark-attendance h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary);
+    text-shadow: 1px 1px var(--accent);
+  }
+  
+  .mark-attendance form {
+    background: var(--toggle-bg);
+    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 400px;
+    display: grid;
+    gap: 1.25rem;
+    transition: box-shadow var(--transition);
+  }
+  .mark-attendance form:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+  
+  .mark-attendance label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+  
+  .mark-attendance input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .mark-attendance input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+  }
+  
+  .mark-attendance button {
+    padding: 0.75rem;
+    background: var(--button-bg);
+    color: var(--button-text);
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  }
+  .mark-attendance button:hover {
+    background: var(--secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+  .mark-attendance button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow);
+  }
+  
