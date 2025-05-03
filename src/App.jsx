@@ -1,36 +1,37 @@
-// src/App.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { animate, stagger } from "animejs";
 import { UserIcon, ShieldCheckIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
+// Create an axios instance pointing at your backend API
+const api = axios.create({
+  baseURL: "https://sdl-back.vercel.app/",
+  withCredentials: true,
+});
+
 export default function App() {
   const [theme, setTheme] = useState("light");
 
   // 1) On mount: fetch saved theme
   useEffect(() => {
-    axios.get("/users/theme", { withCredentials: true })
+    api
+      .get("/users/theme")
       .then(({ data }) => {
         if (data.theme) setTheme(data.theme);
       })
       .catch(() => {
-        /* not logged in? just stay on "light" */
+        // not logged in? stay on default
       });
   }, []);
 
-  // 2) Whenever theme changes locally, push it to <html> and persist
+  // 2) Apply theme to <html> and persist on server
   useEffect(() => {
     const root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
     root.classList.toggle("light", theme === "light");
 
-    // persist to server
-    axios.post(
-      "/users/theme",
-      { theme },
-      { withCredentials: true }
-    ).catch(err => {
+    api.post("/users/theme", { theme }).catch(err => {
       console.error("Could not save theme:", err);
     });
   }, [theme]);
