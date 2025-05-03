@@ -1,0 +1,111 @@
+/* Dashboard.css */
+html.light {
+    --transition: 0.3s ease;
+    --bg-color: #f9f9fb;
+    --text-color: #2e2e3e;
+    --primary: #6c5ce7;
+    --secondary: #00b894;
+    --accent: #fdcb6e;
+    --toggle-bg: #ffffff;
+    --toggle-color: #2e2e2e;
+    --button-bg: #4F46E5;
+    --button-text: #ffffff;
+    --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  html.dark {
+    --transition: 0.3s ease;
+    --bg-color: #000000;
+    --text-color: #e0e0e0;
+    --primary: #a29bfe;
+    --secondary: #00cec9;
+    --accent: #ffeaa7;
+    --toggle-bg: #2e303c;
+    --toggle-color: #e0e0e0;
+    --button-bg: #F3E8FF;
+    --button-text: #4F46E5;
+    --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dashboard {
+    background: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    padding: 2rem;
+    transition: background var(--transition), color var(--transition);
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .dashboard h1, .dashboard h2 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+  
+  .room-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 2rem;
+  }
+  
+  .room-list li {
+    background: var(--toggle-bg);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+    cursor: pointer;
+  }
+  .room-list li:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  }
+  
+  .room-list button {
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background var(--transition), transform var(--transition);
+  }
+  .room-list button:hover {
+    background: var(--primary);
+    transform: translateY(-2px);
+  }
+  
+  .add-room {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .add-room input {
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 0.375rem;
+    transition: border-color var(--transition);
+  }
+  .add-room input:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  .add-room button {
+    grid-column: span 2;
+    background: var(--secondary);
+    color: var(--button-text);
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background var(--transition), transform var(--transition);
+  }
+  .add-room button:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+  }
+  

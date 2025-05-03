@@ -12,6 +12,27 @@ function Dashboard() {
   });
 
   useEffect(() => {
+    // fade‑in all list items on mount
+    anime({
+      targets: ".room-list li",
+      opacity: [0, 1],
+      translateY: [20, 0],
+      delay: anime.stagger(100),
+      easing: "easeOutQuad",
+    });
+
+    // pulse the “Add Room” button every 3s
+    anime({
+      targets: ".add-room button",
+      scale: [1, 1.05, 1],
+      easing: "easeInOutSine",
+      duration: 2000,
+      loop: true,
+      delay: 1000,
+    });
+  }, [rooms]);
+
+  useEffect(() => {
     fetchRooms();
   }, []);
 
