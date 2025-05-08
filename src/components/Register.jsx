@@ -27,6 +27,9 @@ const Register = () => {
     };
     loadModel();
   }, []);
+  const handleGoogleRegister = () => {
+    window.location.href = 'https://sdl-back.vercel.app/auth/google';
+  };
 
   const captureFace = async () => {
     const video = webcamRef.current.video;
@@ -103,6 +106,9 @@ const Register = () => {
             </div>
 
             <button type="submit" className="btn submit-btn">Register</button>
+            <button type="button" className="btn oauth-btn" onClick={handleGoogleRegister}>
+              Register with Google
+            </button>
           </form>
 
           <div className="links-row">

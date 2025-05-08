@@ -67,6 +67,10 @@ function Login() {
       console.error("Login error:", err);
     }
   };
+  const handleGoogleLogin = () => {
+    window.location.href = "https://sdl-back.vercel.app/auth/google";
+  };
+
 
   return (
     <div className="login-page">
@@ -116,6 +120,13 @@ function Login() {
 
           <button type="submit" className="btn">
             Login
+          </button>
+          <button
+            type="button"
+            className="btn oauth-btn"
+            onClick={handleGoogleLogin}
+          >
+            Login with Google
           </button>
 
           <div className="links-row">
