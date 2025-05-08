@@ -10,6 +10,7 @@ import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Register from "./components/Register";
 import AdminLogin from "./components/AdminLogin";
+import FaceVerify from "./components/FaceVerify.jsx";
 
 const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
   {
     path: "/admin/dashboard",
     element: <Dashboard />,
+  },
+  {
+    path: "/face-verify",
+    element: <FaceVerify />,
   },
   {
     path: "/users/register",
