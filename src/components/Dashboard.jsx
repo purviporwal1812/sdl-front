@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { animate, stagger } from "animejs";
 import "./styles/Dashboard.css";
 
 function Dashboard() {
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [newRoom, setNewRoom] = useState({
     name: "",
@@ -13,14 +15,27 @@ function Dashboard() {
     maxlon: "",
   });
 
-  // 1) Fetch rooms once on mount
+  // 1) Auth-guard + initial fetch
   useEffect(() => {
-    fetchRooms();
-  }, []);
+    axios
+      .get("https://sdl-back.vercel.app/admin/dashboard", { withCredentials: true })
+      .then(({ data }) => {
+        setRooms(data);
+      })
+      .catch((err) => {
+        // If unauthorized, redirect to admin login
+        if (err.response?.status === 401) {
+          navigate("/admin/login");
+        } else {
+          console.error("Error fetching rooms", err);
+        }
+      });
+  }, [navigate]);
 
-  // 2) Animate whenever the rooms array changes (i.e. after fetch or add)
+  // 2) Animate whenever rooms change
   useEffect(() => {
-    if (rooms.length === 0) return;
+    if (!rooms.length) return;
+
     animate(
       ".room-list li",
       {
@@ -31,6 +46,7 @@ function Dashboard() {
         duration: 600,
       }
     );
+
     animate(
       ".add-room button",
       {
@@ -43,28 +59,21 @@ function Dashboard() {
     );
   }, [rooms]);
 
-  const fetchRooms = async () => {
-    try {
-      const { data } = await axios.get(
-        "https://sdl-back.vercel.app/admin/dashboard"
-      );
-      setRooms(data);
-    } catch (err) {
-      console.error("Error fetching rooms", err);
-    }
-  };
-
   const handleAddRoom = async () => {
     try {
       const { data } = await axios.post(
         "https://sdl-back.vercel.app/admin/dashboard",
-        newRoom
+        newRoom,
+        { withCredentials: true }
       );
       setRooms((prev) => [...prev, data]);
       setNewRoom({ name: "", minlat: "", maxlat: "", minlon: "", maxlon: "" });
       alert("Room added successfully");
     } catch (err) {
       console.error("Error adding room", err);
+      if (err.response?.status === 401) {
+        navigate("/admin/login");
+      }
     }
   };
 
@@ -72,12 +81,21 @@ function Dashboard() {
     try {
       await axios.post(
         "https://sdl-back.vercel.app/admin/select-room",
-        { roomId }
+        { roomId },
+        { withCredentials: true }
       );
-      fetchRooms();
+      // re-fetch after selection
+      const { data } = await axios.get(
+        "https://sdl-back.vercel.app/admin/dashboard",
+        { withCredentials: true }
+      );
+      setRooms(data);
       alert("Room selected successfully");
     } catch (err) {
       console.error("Error selecting room", err);
+      if (err.response?.status === 401) {
+        navigate("/admin/login");
+      }
     }
   };
 
@@ -95,8 +113,7 @@ function Dashboard() {
         {rooms.map((room) => (
           <li key={room.id}>
             <span>
-              {room.name} — Lat: {room.minlat} to {room.maxlat}, Lon:{" "}
-              {room.minlon} to {room.maxlon}
+              {room.name} — Lat: {room.minlat} to {room.maxlat}, Lon: {room.minlon} to {room.maxlon}
             </span>
             <button onClick={() => handleRoomSelection(room.id)}>
               {room.selected ? "Currently Selected" : "Select"}
