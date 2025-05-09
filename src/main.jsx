@@ -1,29 +1,31 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { createHashRouter, RouterProvider } from 'react-router-dom';
 import 'animate.css';
 import './App.css';
 
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-// ← switch this import:
-import { createHashRouter, RouterProvider } from 'react-router-dom';
 import App from './App.jsx';
-import MarkAttendance from './components/MarkAttendance';
 import Login from './components/Login';
-import Dashboard from './components/Dashboard';
 import Register from './components/Register';
+import VerifySuccess from './components/VerifySuccess';
+import VerifyFailure from './components/VerifyFailure';
+import MarkAttendance from './components/MarkAttendance';
+import Dashboard from './components/Dashboard';
 import AdminLogin from './components/AdminLogin';
 
-// use createHashRouter instead of createBrowserRouter
 const router = createHashRouter([
-  { path: '/',            element: <App /> },
-  { path: '/users/login', element: <Login /> },
-  { path: '/mark-attendance', element: <MarkAttendance /> },
-  { path: '/admin/dashboard', element: <Dashboard /> },
+  { path: '/',               element: <App /> },
+  { path: '/users/login',    element: <Login /> },
   { path: '/users/register', element: <Register /> },
-  { path: '/admin/login',  element: <AdminLogin /> },
+  { path: '/verify-success', element: <VerifySuccess /> },
+  { path: '/verify-failure', element: <VerifyFailure /> },
+  { path: '/mark-attendance',element: <MarkAttendance /> },
+  { path: '/admin/login',    element: <AdminLogin /> },
+  { path: '/admin/dashboard',element: <Dashboard /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <RouterProvider router={router}/>
   </React.StrictMode>
 );

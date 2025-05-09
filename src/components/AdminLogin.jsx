@@ -5,6 +5,7 @@ import axios from "axios";
 import "./styles/Login.css";   // same CSS as user-login
 
 function AdminLogin() {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,7 +15,7 @@ function AdminLogin() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "https://sdl-back.vercel.app/admin/login",
+        `${BACKEND_URL}/admin/login`,
         { email, password },
         { withCredentials: true }
       );

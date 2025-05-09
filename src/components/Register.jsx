@@ -1,123 +1,136 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
 import * as faceapi from 'face-api.js';
 import './styles/Register.css';
 
-const Register = () => {
+export default function Register() {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [error, setError] = useState('');
   const [faceDescriptor, setFaceDescriptor] = useState(null);
+  const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const webcamRef = useRef(null);
-  const navigate = useNavigate();
 
+  // load face-api models once
   useEffect(() => {
-    const loadModel = async () => {
-      const MODEL_URL = `${window.location.origin}/models/`;
-      try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/');
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/');
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/');
-      } catch (error) {
-        console.error('Error loading model:', error);
-      }
-    };
-    loadModel();
+    const MODEL_URL = `${window.location.origin}/models/`;
+    Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/'),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/'),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/')
+    ]).catch(console.error);
   }, []);
-  const handleGoogleRegister = () => {
-    window.location.href = 'https://sdl-back.vercel.app/auth/google';
-  };
 
   const captureFace = async () => {
+    setError('');
     const video = webcamRef.current.video;
+    if (!video) return setError('Webcam not ready');
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
     if (detection) {
       setFaceDescriptor(detection.descriptor);
-      console.log('Face descriptor captured:', detection.descriptor);
     } else {
-      setError('Face not detected. Please try again.');
+      setError('Face not detected. Try again.');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!faceDescriptor) {
-      setError('Please capture your face before registering.');
-      return;
-    }
-
+    setError('');
+    if (!faceDescriptor) return setError('Please capture your face.');
     try {
-      const response = await axios.post('https://sdl-back.vercel.app/users/register', {
-        email,
-        password,
-        phone_number: phoneNumber,
-        face_descriptor: Array.from(faceDescriptor),
-      });
-
-      if (response.status === 201) {
-        alert('User registered successfully.');
-        navigate('/mark-attendance');
-      }
+      const { data } = await axios.post(
+        `${BACKEND_URL}/users/register`,
+        {
+          email,
+          password,
+          phone_number: phoneNumber,
+          face_descriptor: Array.from(faceDescriptor)
+        }
+      );
+      setInfo(data.message);
     } catch (err) {
-      console.error('Error during registration:', err);
-      setError('User already exists.');
+      setError(err.response?.data?.message || 'Registration failed');
     }
   };
 
   return (
-      <div className="register-page">
-        <div className="hero-section">
-          <div className="hero-overlay" />
-          <div className="hero-text">
-            <p>Secure your spot—register with a glance.</p>
-          </div>
-        </div>
-
-        <div className="form-section">
-          <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" className="webcam-feed" />
-          <button onClick={captureFace} className="btn capture-btn">Capture Face</button>
-
-          <form onSubmit={handleSubmit} noValidate>
-            {error && <p className="error">{error}</p>}
-
-            {/** Floating-label fields **/}
-            <div className="form-field">
-              <input id="email" type="email" value={email} required 
-                     onChange={e => setEmail(e.target.value)} placeholder=" " />
-              <label htmlFor="email">Email Address</label>
-            </div>
-
-            <div className="form-field">
-              <input id="phone" type="text" value={phoneNumber} required 
-                     onChange={e => setPhoneNumber(e.target.value)} placeholder=" " />
-              <label htmlFor="phone">Phone Number</label>
-            </div>
-
-            <div className="form-field">
-              <input id="password" type="password" value={password} required 
-                     onChange={e => setPassword(e.target.value)} placeholder=" " />
-              <label htmlFor="password">Password</label>
-            </div>
-
-            <button type="submit" className="btn submit-btn">Register</button>
-            <button type="button" className="btn oauth-btn" onClick={handleGoogleRegister}>
-              Register with Google
-            </button>
-          </form>
-
-          <div className="links-row">
-            <Link to="/">Back to Home</Link>
-            <Link to="/users/login">Already Registered?</Link>
-          </div>
+    <div className="register-page">
+      <div className="hero-section">
+        <div className="hero-overlay"/>
+        <div className="hero-text">
+          <p>Secure your spot—register with a glance.</p>
         </div>
       </div>
-  );
-};
 
-export default Register;
+      <div className="form-section">
+        {error && <div className="error-message">{error}</div>}
+        {info && <div className="info-message">{info}</div>}
+
+        <Webcam
+          ref={webcamRef}
+          audio={false}
+          className="webcam-feed"
+          videoConstraints={{ facingMode: 'user' }}
+        />
+
+        <button onClick={captureFace} className="btn capture-btn">
+          Capture Face
+        </button>
+
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="form-field">
+            <input
+              id="email"
+              type="email"
+              value={email}
+              placeholder=" "
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+            <label htmlFor="email">Email Address</label>
+          </div>
+
+          <div className="form-field">
+            <input
+              id="phone"
+              type="text"
+              value={phoneNumber}
+              placeholder=" "
+              onChange={e => setPhoneNumber(e.target.value)}
+              required
+            />
+            <label htmlFor="phone">Phone Number</label>
+          </div>
+
+          <div className="form-field">
+            <input
+              id="password"
+              type="password"
+              value={password}
+              placeholder=" "
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <label htmlFor="password">Password</label>
+          </div>
+
+          <button type="submit" className="btn submit-btn" disabled={!!info}>
+            Register
+          </button>
+        </form>
+
+        <div className="links-row">
+          <Link to="/">Back to Home</Link>
+          <Link to="/users/login">Already Registered?</Link>
+        </div>
+      </div>
+    </div>
+  );
+}

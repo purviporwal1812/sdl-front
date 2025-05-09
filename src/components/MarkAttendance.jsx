@@ -8,11 +8,11 @@ function MarkAttendance() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [rollNumber, setRollNumber] = useState("");
-
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   // 1. Route guard: verify session
   useEffect(() => {
     axios
-      .get("https://sdl-back.vercel.app/users/theme", { withCredentials: true })
+      .get(`${BACKEND_URL}/users/theme`,{ withCredentials: true })
       .then(() => {
         // authenticated → kick off your animations
         animate(
@@ -57,7 +57,7 @@ function MarkAttendance() {
 
         try {
           const response = await axios.post(
-            "https://sdl-back.vercel.app/mark-attendance",
+            `${BACKEND_URL}/mark-attendance`,
             { name, rollNumber, lat, lon },
             { withCredentials: true }
           );

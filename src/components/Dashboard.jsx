@@ -5,6 +5,7 @@ import { animate, stagger } from "animejs";
 import "./styles/Dashboard.css";
 
 function Dashboard() {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [newRoom, setNewRoom] = useState({
@@ -18,7 +19,7 @@ function Dashboard() {
   // 1) Auth-guard + initial fetch
   useEffect(() => {
     axios
-      .get("https://sdl-back.vercel.app/admin/dashboard", { withCredentials: true })
+      .get(`${BACKEND_URL}/admin/dashboard`, { withCredentials: true })
       .then(({ data }) => {
         setRooms(data);
       })
@@ -62,7 +63,7 @@ function Dashboard() {
   const handleAddRoom = async () => {
     try {
       const { data } = await axios.post(
-        "https://sdl-back.vercel.app/admin/dashboard",
+        `${BACKEND_URL}/admin/dashboard`,
         newRoom,
         { withCredentials: true }
       );
@@ -80,13 +81,13 @@ function Dashboard() {
   const handleRoomSelection = async (roomId) => {
     try {
       await axios.post(
-        "https://sdl-back.vercel.app/admin/select-room",
+        `${BACKEND_URL}//admin/select-room`,
         { roomId },
         { withCredentials: true }
       );
       // re-fetch after selection
       const { data } = await axios.get(
-        "https://sdl-back.vercel.app/admin/dashboard",
+        `${BACKEND_URL}//admin/dashboard`,
         { withCredentials: true }
       );
       setRooms(data);

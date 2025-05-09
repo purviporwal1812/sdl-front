@@ -1,96 +1,99 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import Webcam from "react-webcam";
-import * as faceapi from "face-api.js";
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Webcam from 'react-webcam';
+import * as faceapi from 'face-api.js';
+import './styles/Login.css';
 
-import "./styles/Login.css";
-
-function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+export default function Login() {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [faceDescriptor, setFaceDescriptor] = useState(null);
+  const [error, setError] = useState('');
+  const [resendSent, setResendSent] = useState(false);
   const webcamRef = useRef(null);
   const navigate = useNavigate();
   const [modelsLoaded, setModelsLoaded] = useState(false);
 
+  // Load models
   useEffect(() => {
-    const loadModel = async () => {
-      const MODEL_URL = `${window.location.origin}/models/`;
-      try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + "tiny_face_detector/");
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + "face_landmark_68/");
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + "face_recognition/");
-        setModelsLoaded(true);
-      } catch (err) {
-        console.error("Error loading model:", err);
-      }
-    };
-    loadModel();
+    const MODEL_URL = `${window.location.origin}/models/`;
+    Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/'),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/'),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/')
+    ])
+    .then(() => setModelsLoaded(true))
+    .catch(console.error);
   }, []);
 
   const captureFace = async () => {
-    if (!modelsLoaded) {
-      setError("Models are still loading. Please wait.");
-      return;
-    }
+    setError('');
+    if (!modelsLoaded) return setError('Models still loading');
     const video = webcamRef.current.video;
-    const detection = await faceapi
+    const det = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
-
-    if (detection) {
-      setFaceDescriptor(detection.descriptor);
-      setError("");
-    } else {
-      setError("Face not detected. Please try again.");
-    }
+    if (det) setFaceDescriptor(det.descriptor);
+    else setError('Face not detected. Try again.');
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    if (!faceDescriptor) {
-      setError("Face not captured. Please capture your face before logging in.");
-      return;
-    }
+    setError('');
+    if (!faceDescriptor) return setError('Capture your face first.');
     try {
-      const response = await axios.post(
-        "https://sdl-back.vercel.app/users/login",
+      await axios.post(
+        `${BACKEND_URL}/users/login`,
         { email, password, face_descriptor: Array.from(faceDescriptor) },
         { withCredentials: true }
       );
-      if (response.status === 200) navigate("/mark-attendance");
+      navigate('/mark-attendance');
     } catch (err) {
-      setError("Login failed. Please check your credentials.");
-      console.error("Login error:", err);
+      const msg = err.response?.data?.message;
+      if (msg === 'Please verify your email before logging in.') {
+        setError(
+          <>
+            Please verify your email. Didn’t get it?{' '}
+            <button onClick={handleResend} className="link-btn">
+              Resend link
+            </button>
+          </>
+        );
+      } else {
+        setError('Login failed. Check credentials.');
+      }
     }
   };
-  const handleGoogleLogin = () => {
-    window.location.href = "https://sdl-back.vercel.app/auth/google";
-  };
 
+  const handleResend = async () => {
+    try {
+      await axios.post(`${BACKEND_URL}/users/resend-verification`, { email });
+      setResendSent(true);
+    } catch {
+      setError('Failed to resend. Try again later.');
+    }
+  };
 
   return (
     <div className="login-page">
       <section className="hero-section">
-        <div className="hero-overlay"></div>
-        <div className="hero-text">
-          <h1>Welcome Back!</h1>
-        </div>
+        <div className="hero-overlay"/>
+        <div className="hero-text"><h1>Welcome Back!</h1></div>
       </section>
 
       <section className="form-section">
         {error && <div className="error-message">{error}</div>}
+        {resendSent && <div className="info-message">Verification email sent.</div>}
 
         <Webcam
           ref={webcamRef}
-          className="webcam-feed"
           audio={false}
-          videoConstraints={{ facingMode: "user" }}
+          className="webcam-feed"
+          videoConstraints={{ facingMode: 'user' }}
         />
-
         <button type="button" className="btn capture-btn" onClick={captureFace}>
           Capture Face
         </button>
@@ -101,7 +104,7 @@ function Login() {
               type="email"
               placeholder=" "
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               required
             />
             <label>Email Address</label>
@@ -112,22 +115,13 @@ function Login() {
               type="password"
               placeholder=" "
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               required
             />
             <label>Password</label>
           </div>
 
-          <button type="submit" className="btn">
-            Login
-          </button>
-          <button
-            type="button"
-            className="btn oauth-btn"
-            onClick={handleGoogleLogin}
-          >
-            Login with Google
-          </button>
+          <button type="submit" className="btn">Login</button>
 
           <div className="links-row">
             <Link to="/users/register">New User?</Link>
@@ -138,5 +132,3 @@ function Login() {
     </div>
   );
 }
-
-export default Login;

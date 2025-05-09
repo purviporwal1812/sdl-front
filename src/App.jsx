@@ -5,8 +5,9 @@ import { animate, stagger } from "animejs";
 import { UserIcon, ShieldCheckIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
 // Create an axios instance pointing at your backend API
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const api = axios.create({
-  baseURL: "https://sdl-back.vercel.app/",
+  baseURL: `${BACKEND_URL}/`,
   withCredentials: true,
 });
 
