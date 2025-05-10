@@ -1,62 +1,80 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-import Webcam from 'react-webcam';
-import * as faceapi from 'face-api.js';
+import { Link }                      from 'react-router-dom';
+import axios                          from 'axios';
+import Webcam                         from 'react-webcam';
+import * as faceapi                   from 'face-api.js';
 import './styles/Register.css';
 
 export default function Register() {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [faceDescriptor, setFaceDescriptor] = useState(null);
-  const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
-  const webcamRef = useRef(null);
+  const BACKEND_URL   = import.meta.env.VITE_BACKEND_URL;
+  const [email,     setEmail]       = useState('');
+  const [password,  setPassword]    = useState('');
+  const [phone,     setPhone]       = useState('');
+  const [descriptor,setDescriptor]  = useState(null);
+  const [error,     setError]       = useState('');
+  const [info,      setInfo]        = useState('');
+  const webcamRef    = useRef(null);
 
-  // load face-api models once
+  // Load face-api models
   useEffect(() => {
     const MODEL_URL = `${window.location.origin}/models/`;
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/'),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/'),
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/')
-    ]).catch(console.error);
+    ])
+    .then(() => console.log("[Register] face-api models loaded"))
+    .catch(err => console.error("[Register] model load error:", err));
   }, []);
 
+  // Capture face descriptor
   const captureFace = async () => {
     setError('');
-    const video = webcamRef.current.video;
-    if (!video) return setError('Webcam not ready');
-    const detection = await faceapi
-      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-    if (detection) {
-      setFaceDescriptor(detection.descriptor);
-    } else {
-      setError('Face not detected. Try again.');
+    const video = webcamRef.current?.video;
+    if (!video) return setError("Webcam not ready");
+    try {
+      const detection = await faceapi
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+      if (detection) {
+        setDescriptor(detection.descriptor);
+        console.log("[Register] descriptor:", detection.descriptor);
+      } else {
+        setError("Face not detected");
+      }
+    } catch (err) {
+      console.error("[Register] face detection error:", err);
+      setError("Face detection failed");
     }
   };
 
-  const handleSubmit = async (e) => {
+  // Submit registration
+  const handleSubmit = async e => {
     e.preventDefault();
     setError('');
-    if (!faceDescriptor) return setError('Please capture your face.');
+    if (!descriptor) return setError("Please capture your face");
+
+    const url     = `${BACKEND_URL}/users/register`;
+    const payload = {
+      email,
+      password,
+      phone_number: phone,
+      face_descriptor: Array.from(descriptor)
+    };
+    console.log("[Register] POST", url, payload);
+
     try {
-      const { data } = await axios.post(
-        `${BACKEND_URL}/users/register`,
-        {
-          email,
-          password,
-          phone_number: phoneNumber,
-          face_descriptor: Array.from(faceDescriptor)
-        }
-      );
+      const { data } = await axios.post(url, payload, {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" }
+      });
+      console.log("[Register] success response:", data);
       setInfo(data.message);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      console.error("[Register] error response:", err.response || err);
+      const msg = err.response?.data?.message || "Registration failed";
+      setError(msg);
     }
   };
 
@@ -65,21 +83,20 @@ export default function Register() {
       <div className="hero-section">
         <div className="hero-overlay"/>
         <div className="hero-text">
-          <p>Secure your spot—register with a glance.</p>
+          <h2>Secure your spot—register with a glance.</h2>
         </div>
       </div>
 
       <div className="form-section">
         {error && <div className="error-message">{error}</div>}
-        {info && <div className="info-message">{info}</div>}
+        {info  && <div className="info-message">{info}</div>}
 
         <Webcam
           ref={webcamRef}
           audio={false}
+          videoConstraints={{ facingMode: "user" }}
           className="webcam-feed"
-          videoConstraints={{ facingMode: 'user' }}
         />
-
         <button onClick={captureFace} className="btn capture-btn">
           Capture Face
         </button>
@@ -90,8 +107,8 @@ export default function Register() {
               id="email"
               type="email"
               value={email}
-              placeholder=" "
               onChange={e => setEmail(e.target.value)}
+              placeholder=" "
               required
             />
             <label htmlFor="email">Email Address</label>
@@ -101,9 +118,9 @@ export default function Register() {
             <input
               id="phone"
               type="text"
-              value={phoneNumber}
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
               placeholder=" "
-              onChange={e => setPhoneNumber(e.target.value)}
               required
             />
             <label htmlFor="phone">Phone Number</label>
@@ -114,8 +131,8 @@ export default function Register() {
               id="password"
               type="password"
               value={password}
-              placeholder=" "
               onChange={e => setPassword(e.target.value)}
+              placeholder=" "
               required
             />
             <label htmlFor="password">Password</label>

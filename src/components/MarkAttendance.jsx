@@ -4,17 +4,18 @@ import axios from "axios";
 import { animate, stagger } from "animejs";
 import "./styles/MarkAttendance.css";
 
-function MarkAttendance() {
+export default function MarkAttendance() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [rollNumber, setRollNumber] = useState("");
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
   // 1. Route guard: verify session
   useEffect(() => {
     axios
-      .get(`${BACKEND_URL}/users/theme`,{ withCredentials: true })
+      .get(`${BACKEND_URL}/users/theme`, { withCredentials: true })
       .then(() => {
-        // authenticated → kick off your animations
+        // authenticated → run animations
         animate(
           ".mark-attendance form label, .mark-attendance form input",
           {
@@ -37,44 +38,59 @@ function MarkAttendance() {
         );
       })
       .catch(() => {
-        // not authenticated → send back to login
+        // not authenticated → back to login
         navigate("/users/login");
       });
-  }, [navigate]);
+  }, [navigate, BACKEND_URL]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by this browser.");
-      return;
+  // 2. Logout handler
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${BACKEND_URL}/users/logout`,
+        {},
+        { withCredentials: true }
+      );
+      navigate("/users/login");
+    } catch (err) {
+      console.error("Logout failed:", err);
+      alert("Could not log out. Try again.");
     }
+  };
 
+  // 3. Attendance submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!navigator.geolocation) {
+      return alert("Geolocation is not supported by this browser.");
+    }
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-
+      async (pos) => {
+        const { latitude: lat, longitude: lon } = pos.coords;
         try {
-          const response = await axios.post(
+          const res = await axios.post(
             `${BACKEND_URL}/mark-attendance`,
             { name, rollNumber, lat, lon },
             { withCredentials: true }
           );
-          alert(response.data);
+          alert(res.data);
         } catch (error) {
           alert(error.response?.data || "Failed to mark attendance");
         }
       },
-      () => {
-        alert("Failed to get location. Please enable location services.");
-      }
+      () => alert("Failed to get location. Please enable location services.")
     );
   };
 
   return (
     <div className="mark-attendance">
-      <h1>Mark Attendance</h1>
+      <header style={{ display: "flex", justifyContent: "space-between" }}>
+        <h1>Mark Attendance</h1>
+        <button className="btn logout-btn" onClick={handleLogout}>
+          Logout
+        </button>
+      </header>
+
       <form onSubmit={handleSubmit}>
         <label htmlFor="name">Name:</label>
         <input
@@ -99,5 +115,3 @@ function MarkAttendance() {
     </div>
   );
 }
-
-export default MarkAttendance;
