@@ -10,9 +10,17 @@ export default function MarkAttendance() {
   const [rollNumber, setRollNumber] = useState("");
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  // 1. Route guard: verify session
+  // 1. Route‑guard: verify session, then animate or redirect
   useEffect(() => {
-        // authenticated → run animations
+    // define an async verification function
+    const verifySessionAndAnimate = async () => {
+      try {
+        // hit a verify‑session endpoint (you need this on your backend)
+        await axios.get(`${BACKEND_URL}/users/verify-session`, {
+          withCredentials: true,
+        });
+
+        // if it succeeds, run your animations
         animate(
           ".mark-attendance form label, .mark-attendance form input",
           {
@@ -33,10 +41,13 @@ export default function MarkAttendance() {
             delay: 500,
           }
         );
-      })
-      .catch(() => {
-        // not authenticated → back to login
+      } catch (err) {
+        // if verification fails, go back to login
         navigate("/users/login");
+      }
+    };
+
+    verifySessionAndAnimate();
   }, [navigate, BACKEND_URL]);
 
   // 2. Logout handler
@@ -85,10 +96,21 @@ export default function MarkAttendance() {
 
   return (
     <div className="mark-attendance">
-      <header className="mark-attendance-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <header
+        className="mark-attendance-header"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <h1>Mark Attendance</h1>
         <div>
-          <button className="btn profile-btn" onClick={goToProfile} style={{ marginRight: "8px" }}>
+          <button
+            className="btn profile-btn"
+            onClick={goToProfile}
+            style={{ marginRight: "8px" }}
+          >
             Profile
           </button>
           <button className="btn logout-btn" onClick={handleLogout}>
