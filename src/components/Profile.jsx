@@ -148,9 +148,7 @@ export default function Profile() {
           <p className="detail">
             <strong>Phone:</strong> {profile.phone_number}
           </p>
-          <p className="detail">
-            <strong>Theme:</strong> {profile.theme}
-          </p>
+
         </div>
       </section>
 

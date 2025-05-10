@@ -12,9 +12,6 @@ export default function MarkAttendance() {
 
   // 1. Route guard: verify session
   useEffect(() => {
-    axios
-      .get(`${BACKEND_URL}/users/theme`, { withCredentials: true })
-      .then(() => {
         // authenticated → run animations
         animate(
           ".mark-attendance form label, .mark-attendance form input",
@@ -40,7 +37,6 @@ export default function MarkAttendance() {
       .catch(() => {
         // not authenticated → back to login
         navigate("/users/login");
-      });
   }, [navigate, BACKEND_URL]);
 
   // 2. Logout handler
