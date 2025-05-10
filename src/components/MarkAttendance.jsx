@@ -58,7 +58,12 @@ export default function MarkAttendance() {
     }
   };
 
-  // 3. Attendance submit
+  // 3. Go to profile
+  const goToProfile = () => {
+    navigate("/profile");
+  };
+
+  // 4. Attendance submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!navigator.geolocation) {
@@ -84,11 +89,16 @@ export default function MarkAttendance() {
 
   return (
     <div className="mark-attendance">
-      <header style={{ display: "flex", justifyContent: "space-between" }}>
+      <header className="mark-attendance-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>Mark Attendance</h1>
-        <button className="btn logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
+        <div>
+          <button className="btn profile-btn" onClick={goToProfile} style={{ marginRight: "8px" }}>
+            Profile
+          </button>
+          <button className="btn logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </header>
 
       <form onSubmit={handleSubmit}>

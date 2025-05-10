@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { animate, stagger } from "animejs";
-import { UserIcon, ShieldCheckIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
+import {
+  UserIcon,
+  ShieldCheckIcon,
+  SunIcon,
+  MoonIcon,
+} from "@heroicons/react/24/outline";
 
 // Create an axios instance pointing at your backend API
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -12,40 +17,29 @@ const api = axios.create({
 });
 
 export default function App() {
-  const [theme, setTheme] = useState("light");
+  const isFirstRender = useRef(true);
 
-  // 1) On mount: fetch saved theme
-  useEffect(() => {
-    api
-      .get("/users/theme")
-      .then(({ data }) => {
-        if (data.theme) setTheme(data.theme);
-      })
-      .catch(() => {
-        // not logged in? stay on default
-      });
-  }, []);
-
-  // 2) Apply theme to <html> and persist on server
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle("dark", theme === "dark");
-    root.classList.toggle("light", theme === "light");
-
-    api.post("/users/theme", { theme }).catch(err => {
-      console.error("Could not save theme:", err);
-    });
-  }, [theme]);
-
-  // 3) Entry animations (unchanged)
+  // 3) Entry animations
   useEffect(() => {
     animate(
       ".hero-content h1, .hero-content p",
-      { opacity: [0, 1], translateY: [-20, 0], easing: "easeOutExpo", duration: 1000, delay: stagger(200) }
+      {
+        opacity: [0, 1],
+        translateY: [-20, 0],
+        easing: "easeOutExpo",
+        duration: 1000,
+        delay: stagger(200),
+      }
     );
     animate(
       ".nav-button",
-      { opacity: [0, 1], translateY: [20, 0], delay: stagger(150), easing: "easeOutExpo", duration: 800 }
+      {
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: stagger(150),
+        easing: "easeOutExpo",
+        duration: 800,
+      }
     );
   }, []);
 
@@ -53,10 +47,10 @@ export default function App() {
     <div className="home-container">
       <div className="blob blob--one" />
       <div className="blob blob--two" />
-
+{/* 
       <button
         className="theme-toggle"
-        onClick={() => setTheme(t => (t === "light" ? "dark" : "light"))}
+        onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
         aria-label="Toggle theme"
       >
         {theme === "light" ? (
@@ -64,13 +58,14 @@ export default function App() {
         ) : (
           <SunIcon className="icon icon--toggle" />
         )}
-      </button>
+      </button> */}
 
       <section className="hero-content">
         <h1>Smart Attendance, Seamless Tracking</h1>
         <p>
-          Leverage face recognition and geolocation to automate attendance in real time. Secure, accurate
-          records with just a glance—perfect for teachers, managers, and event organizers.
+          Leverage face recognition and geolocation to automate attendance in
+          real time. Secure, accurate records with just a glance—perfect for
+          teachers, managers, and event organizers.
         </p>
       </section>
 
