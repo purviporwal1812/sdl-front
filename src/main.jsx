@@ -1,4 +1,3 @@
-// index.jsx (or main.js)
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
@@ -13,7 +12,7 @@ import VerifyFailure   from './components/VerifyFailure';
 import MarkAttendance  from './components/MarkAttendance';
 import Dashboard       from './components/Dashboard';
 import AdminLogin      from './components/AdminLogin';
-import Profile         from './components/Profile';        // ← NEW
+import Profile         from './components/Profile';       
 
 const router = createHashRouter([
   { path: '/',                element: <App /> },
@@ -22,7 +21,7 @@ const router = createHashRouter([
   { path: '/verify-success',  element: <VerifySuccess /> },
   { path: '/verify-failure',  element: <VerifyFailure /> },
   { path: '/mark-attendance', element: <MarkAttendance /> },
-  { path: '/profile',         element: <Profile /> },      // ← NEW
+  { path: '/profile',         element: <Profile /> },   
   { path: '/admin/login',     element: <AdminLogin /> },
   { path: '/admin/dashboard', element: <Dashboard /> },
 ]);

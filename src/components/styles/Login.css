@@ -102,7 +102,15 @@
   position: relative;
   margin-bottom: 1.5rem;
 }
-
+.success-message {
+  color: #2d7a2d;
+  background: #e6f4ea;
+  border: 1px solid #a3d9a5;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  font-weight: 500;
+}
 .form-field input {
   width: 100%;
   padding: 1rem 0.5rem 0.25rem;

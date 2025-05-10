@@ -1,87 +1,156 @@
-import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
-import { animate, stagger } from "animejs";
-import {
-  UserIcon,
-  ShieldCheckIcon,
-  SunIcon,
-  MoonIcon,
-} from "@heroicons/react/24/outline";
+// src/components/Login.js
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Webcam from 'react-webcam';
+import * as faceapi from 'face-api.js';
+import './styles/Login.css';
 
-// Create an axios instance pointing at your backend API
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-const api = axios.create({
-  baseURL: `${BACKEND_URL}/`,
-  withCredentials: true,
-});
+export default function Login() {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [faceDescriptor, setFaceDescriptor] = useState(null);
+  const [error, setError] = useState('');
+  const [captureMessage, setCaptureMessage] = useState('');
+  const [resendSent, setResendSent] = useState(false);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
 
-export default function App() {
+  const webcamRef = useRef(null);
+  const navigate = useNavigate();
 
-  const isFirstRender = useRef(true);
-
-
- 
-  // 3) Entry animations
+  // Load face‑api models once
   useEffect(() => {
-    animate(
-      ".hero-content h1, .hero-content p",
-      {
-        opacity: [0, 1],
-        translateY: [-20, 0],
-        easing: "easeOutExpo",
-        duration: 1000,
-        delay: stagger(200),
-      }
-    );
-    animate(
-      ".nav-button",
-      {
-        opacity: [0, 1],
-        translateY: [20, 0],
-        delay: stagger(150),
-        easing: "easeOutExpo",
-        duration: 800,
-      }
-    );
+    const MODEL_URL = `${window.location.origin}/models/`;
+    Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/'),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/'),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/')
+    ])
+      .then(() => setModelsLoaded(true))
+      .catch(console.error);
   }, []);
 
+  const captureFace = async () => {
+    setError('');
+    setCaptureMessage('');
+    if (!modelsLoaded) {
+      setError('Models still loading. Please wait a moment.');
+      return;
+    }
+
+    const video = webcamRef.current.video;
+    const det = await faceapi
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (det) {
+      setFaceDescriptor(det.descriptor);
+      setCaptureMessage('✅ Face captured successfully!');
+    } else {
+      setError('Face not detected. Please try again.');
+    }
+  };
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setError('');
+    if (!faceDescriptor) {
+      setError('Please capture your face before logging in.');
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${BACKEND_URL}/users/login`,
+        { email, password, face_descriptor: Array.from(faceDescriptor) },
+        { withCredentials: true }
+      );
+      navigate('/mark-attendance');
+    } catch (err) {
+      const msg = err.response?.data?.message;
+      if (msg === 'Please verify your email before logging in.') {
+        setError(
+          <>
+            Please verify your email. Didn’t get it?{' '}
+            <button onClick={handleResend} className="link-btn">
+              Resend link
+            </button>
+          </>
+        );
+      } else {
+        setError('Login failed. Check credentials.');
+      }
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await axios.post(`${BACKEND_URL}/users/resend-verification`, { email });
+      setResendSent(true);
+    } catch {
+      setError('Failed to resend. Try again later.');
+    }
+  };
+
   return (
-    <div className="home-container">
-      <div className="blob blob--one" />
-      <div className="blob blob--two" />
-
-      {/* <button
-        className="theme-toggle"
-        onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
-        aria-label="Toggle theme"
-      >
-        {theme === "light" ? (
-          <MoonIcon className="icon icon--toggle" />
-        ) : (
-          <SunIcon className="icon icon--toggle" />
-        )}
-      </button> */}
-
-      <section className="hero-content">
-        <h1>Smart Attendance, Seamless Tracking</h1>
-        <p>
-          Leverage face recognition and geolocation to automate attendance in
-          real time. Secure, accurate records with just a glance—perfect for
-          teachers, managers, and event organizers.
-        </p>
+    <div className="login-page">
+      <section className="hero-section">
+        <div className="hero-overlay" />
+        <div className="hero-text">
+          <h1>Welcome Back!</h1>
+        </div>
       </section>
 
-      <div className="links">
-        <Link to="/users/login" className="nav-button">
-          <UserIcon className="icon icon--nav" />
-          <span>User Login</span>
-        </Link>
-        <Link to="/admin/login" className="nav-button">
-          <ShieldCheckIcon className="icon icon--nav" />
-          <span>Admin Login</span>
-        </Link>
-      </div>
+      <section className="form-section">
+        {error && <div className="error-message">{error}</div>}
+        {captureMessage && <div className="success-message">{captureMessage}</div>}
+        {resendSent && <div className="info-message">Verification email sent.</div>}
+
+        <Webcam
+          ref={webcamRef}
+          audio={false}
+          className="webcam-feed"
+          videoConstraints={{ facingMode: 'user' }}
+        />
+        <button type="button" className="btn capture-btn" onClick={captureFace}>
+          Capture Face
+        </button>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-field">
+            <input
+              type="email"
+              placeholder=" "
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+            <label>Email Address</label>
+          </div>
+
+          <div className="form-field">
+            <input
+              type="password"
+              placeholder=" "
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <label>Password</label>
+          </div>
+
+          <button type="submit" className="btn">
+            Login
+          </button>
+
+          <div className="links-row">
+            <Link to="/users/register">New User?</Link>
+            <Link to="/forgot-password">Forgot Password?</Link>
+          </div>
+        </form>
+      </section>
     </div>
   );
 }
