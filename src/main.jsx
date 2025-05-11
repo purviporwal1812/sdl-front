@@ -13,6 +13,9 @@ import MarkAttendance  from './components/MarkAttendance';
 import Dashboard       from './components/Dashboard';
 import AdminLogin      from './components/AdminLogin';
 import Profile         from './components/Profile';       
+import axios from 'axios';
+
+axios.defaults.withCredentials = true;
 
 const router = createHashRouter([
   { path: '/',                element: <App /> },
