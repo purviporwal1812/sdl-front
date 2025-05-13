@@ -1,15 +1,26 @@
-import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+/* Updated VerifyCode.jsx */
+import React, { useState, useEffect } from 'react'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 
 export default function VerifyCode() {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
-  const navigate    = useNavigate()
+  const navigate = useNavigate()
+  const location = useLocation()
+  // get email from navigation state or fallback
+  const initialEmail = location.state?.email || ''
 
-  const [email, setEmail] = useState('')
-  const [code,  setCode]  = useState('')
+  const [email] = useState(initialEmail)
+  const [code, setCode] = useState('')
   const [error, setError] = useState('')
-  const [info,  setInfo]  = useState('')
+  const [info, setInfo] = useState('')
+
+  useEffect(() => {
+    if (!email) {
+      // if no email, redirect back to register
+      navigate('/users/register')
+    }
+  }, [email, navigate])
 
   const handleVerify = async e => {
     e.preventDefault()
@@ -21,8 +32,7 @@ export default function VerifyCode() {
         { email, code },
         { withCredentials: true }
       )
-      setInfo(data.message)         // “Email verified and logged in.”
-      // then redirect to dashboard or login
+      setInfo(data.message)
       setTimeout(() => navigate('/mark-attendance'), 1000)
     } catch (err) {
       console.error('[VerifyCode] error:', err.response || err)
@@ -38,7 +48,7 @@ export default function VerifyCode() {
         { email },
         { withCredentials: true }
       )
-      setInfo(data.message)       // “Verification code sent.”
+      setInfo(data.message)
     } catch (err) {
       console.error('[VerifyCode] resend error:', err.response || err)
       setError('Failed to resend code.')
@@ -48,21 +58,11 @@ export default function VerifyCode() {
   return (
     <div className="verify-page">
       <div className="verify-card">
-        <h2>Enter Your Verification Code</h2>
+        <h2>Enter Verification Code for {email}</h2>
         {error && <div className="error-message">{error}</div>}
-        {info  && <div className="info-message">{info}</div>}
+        {info && <div className="info-message">{info}</div>}
 
         <form onSubmit={handleVerify} noValidate>
-          <div className="form-field">
-            <input
-              type="email"
-              placeholder=" "
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-            <label>Email Address</label>
-          </div>
           <div className="form-field">
             <input
               type="text"

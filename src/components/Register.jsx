@@ -1,101 +1,74 @@
-// src/components/Register.jsx
+/* Updated Register.jsx */
 import React, { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate }                from 'react-router-dom'
-import axios                                 from 'axios'
-import Webcam                                from 'react-webcam'
-import * as faceapi                          from 'face-api.js'
+import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import Webcam from 'react-webcam'
+import * as faceapi from 'face-api.js'
 import './styles/Register.css'
 
 export default function Register() {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
-  const navigate    = useNavigate()
+  const navigate = useNavigate()
 
-  const [email,      setEmail]      = useState('')
-  const [password,   setPassword]   = useState('')
-  const [phone,      setPhone]      = useState('')
+  // form state
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [phone, setPhone] = useState('')
   const [descriptor, setDescriptor] = useState(null)
-  const [error,      setError]      = useState('')
-  const [loading,    setLoading]    = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const webcamRef = useRef(null)
 
-  // Load face-api models once
+  // load face-api models
   useEffect(() => {
     const MODEL_URL = `${window.location.origin}/models/`
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/'),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/'),
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/')
-    ])
-    .then(() => console.log('[Register] face-api models loaded'))
-    .catch(err => console.error('[Register] model load error:', err))
+    ]).catch(err => console.error('[Register] model load error:', err))
   }, [])
 
-  // Capture face descriptor
   const captureFace = async () => {
     setError('')
     const video = webcamRef.current?.video
     if (!video) return setError('Webcam not ready')
-
     try {
-      console.log('[Register] ➥ Capturing face')
       const detection = await faceapi
         .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor()
-
-      if (detection) {
-        setDescriptor(detection.descriptor)
-        console.log('[Register] descriptor captured', detection.descriptor)
-      } else {
-        console.warn('[Register] ✖ No face detected')
-        setError('Face not detected')
-      }
+      if (detection) setDescriptor(detection.descriptor)
+      else setError('Face not detected')
     } catch (err) {
       console.error('[Register] face detection error:', err)
       setError('Face detection failed')
     }
   }
 
-  // Submit registration
   const handleSubmit = async e => {
     e.preventDefault()
     setError('')
-
-    if (!descriptor) {
-      return setError('Please capture your face before registering.')
-    }
+    if (!descriptor) return setError('Please capture your face before registering.')
 
     setLoading(true)
-    const payload = {
-      email,
-      password,
-      phone_number: phone,
-      face_descriptor: Array.from(descriptor)
-    }
-    console.log('[Register] POST', `${BACKEND_URL}/users/register`, payload)
+    const payload = { email, password, phone_number: phone, face_descriptor: Array.from(descriptor) }
 
     try {
-      const { data } = await axios.post(
-        `${BACKEND_URL}/users/register`,
-        payload,
-        {
-          withCredentials: true,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
-      console.log('[Register] success response:', data)
-      // go to verify-success page
-      navigate('/users/verify')
+      await axios.post(`${BACKEND_URL}/users/register`, payload, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'application/json' }
+      })
+      // Pass email to verify page via state
+      navigate('/users/verify', { state: { email } })
     } catch (err) {
-      console.error('[Register] error response:', err.response || err)
-      const msg = err.response?.data?.message || 'Registration failed'
-      setError(msg)
+      console.error('[Register] error:', err.response || err)
+      setError(err.response?.data?.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
   }
-
   return (
     <div className="register-page">
       <div className="hero-section">
