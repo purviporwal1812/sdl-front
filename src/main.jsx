@@ -9,6 +9,7 @@ import Login           from './components/Login';
 import Register        from './components/Register';
 import VerifySuccess   from './components/VerifySuccess';
 import VerifyFailure   from './components/VerifyFailure';
+import VerifyCode   from './components/VerifyCode';
 import MarkAttendance  from './components/MarkAttendance';
 import Dashboard       from './components/Dashboard';
 import AdminLogin      from './components/AdminLogin';
@@ -22,6 +23,7 @@ const router = createHashRouter([
   { path: '/users/login',     element: <Login /> },
   { path: '/users/register',  element: <Register /> },
   { path: '/verify-success',  element: <VerifySuccess /> },
+  { path: '/users/verify',    element: <VerifyCode /> },
   { path: '/verify-failure',  element: <VerifyFailure /> },
   { path: '/mark-attendance', element: <MarkAttendance /> },
   { path: '/profile',         element: <Profile /> },   

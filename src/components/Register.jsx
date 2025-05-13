@@ -86,7 +86,7 @@ export default function Register() {
       )
       console.log('[Register] success response:', data)
       // go to verify-success page
-      navigate('/verify-success')
+      navigate('/users/verify')
     } catch (err) {
       console.error('[Register] error response:', err.response || err)
       const msg = err.response?.data?.message || 'Registration failed'
