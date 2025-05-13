@@ -1,8 +1,6 @@
-// src/components/VerifyCode.jsx
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
-import './styles/VerifyCode.css'
 
 export default function VerifyCode() {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
