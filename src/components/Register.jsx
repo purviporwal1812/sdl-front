@@ -1,82 +1,100 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link }                      from 'react-router-dom';
-import axios                          from 'axios';
-import Webcam                         from 'react-webcam';
-import * as faceapi                   from 'face-api.js';
-import './styles/Register.css';
+// src/components/Register.jsx
+import React, { useState, useEffect, useRef } from 'react'
+import { Link, useNavigate }                from 'react-router-dom'
+import axios                                 from 'axios'
+import Webcam                                from 'react-webcam'
+import * as faceapi                          from 'face-api.js'
+import './styles/Register.css'
 
 export default function Register() {
-  const BACKEND_URL   = import.meta.env.VITE_BACKEND_URL;
-  const [email,     setEmail]       = useState('');
-  const [password,  setPassword]    = useState('');
-  const [phone,     setPhone]       = useState('');
-  const [descriptor,setDescriptor]  = useState(null);
-  const [error,     setError]       = useState('');
-  const [info,      setInfo]        = useState('');
-  const webcamRef    = useRef(null);
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+  const navigate    = useNavigate()
 
-  // Load face-api models
+  const [email,      setEmail]      = useState('')
+  const [password,   setPassword]   = useState('')
+  const [phone,      setPhone]      = useState('')
+  const [descriptor, setDescriptor] = useState(null)
+  const [error,      setError]      = useState('')
+  const [loading,    setLoading]    = useState(false)
+
+  const webcamRef = useRef(null)
+
+  // Load face-api models once
   useEffect(() => {
-    const MODEL_URL = `${window.location.origin}/models/`;
+    const MODEL_URL = `${window.location.origin}/models/`
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/'),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/'),
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/')
     ])
-    .then(() => console.log("[Register] face-api models loaded"))
-    .catch(err => console.error("[Register] model load error:", err));
-  }, []);
+    .then(() => console.log('[Register] face-api models loaded'))
+    .catch(err => console.error('[Register] model load error:', err))
+  }, [])
 
   // Capture face descriptor
   const captureFace = async () => {
-    setError('');
-    const video = webcamRef.current?.video;
-    if (!video) return setError("Webcam not ready");
+    setError('')
+    const video = webcamRef.current?.video
+    if (!video) return setError('Webcam not ready')
+
     try {
+      console.log('[Register] ➥ Capturing face')
       const detection = await faceapi
         .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
-        .withFaceDescriptor();
+        .withFaceDescriptor()
+
       if (detection) {
-        setDescriptor(detection.descriptor);
-        console.log("[Register] descriptor:", detection.descriptor);
+        setDescriptor(detection.descriptor)
+        console.log('[Register] descriptor captured', detection.descriptor)
       } else {
-        setError("Face not detected");
+        console.warn('[Register] ✖ No face detected')
+        setError('Face not detected')
       }
     } catch (err) {
-      console.error("[Register] face detection error:", err);
-      setError("Face detection failed");
+      console.error('[Register] face detection error:', err)
+      setError('Face detection failed')
     }
-  };
+  }
 
   // Submit registration
   const handleSubmit = async e => {
-    e.preventDefault();
-    setError('');
-    if (!descriptor) return setError("Please capture your face");
+    e.preventDefault()
+    setError('')
 
-    const url     = `${BACKEND_URL}/users/register`;
+    if (!descriptor) {
+      return setError('Please capture your face before registering.')
+    }
+
+    setLoading(true)
     const payload = {
       email,
       password,
       phone_number: phone,
       face_descriptor: Array.from(descriptor)
-    };
-    console.log("[Register] POST", url, payload);
+    }
+    console.log('[Register] POST', `${BACKEND_URL}/users/register`, payload)
 
     try {
-      const { data } = await axios.post(url, payload, {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" }
-      });
-      console.log("[Register] success response:", data);
-      setInfo(data.message);
+      const { data } = await axios.post(
+        `${BACKEND_URL}/users/register`,
+        payload,
+        {
+          withCredentials: true,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
+      console.log('[Register] success response:', data)
+      // go to verify-success page
+      navigate('/verify-success')
     } catch (err) {
-      console.error("[Register] error response:", err.response || err);
-      const msg = err.response?.data?.message || "Registration failed";
-      setError(msg);
+      console.error('[Register] error response:', err.response || err)
+      const msg = err.response?.data?.message || 'Registration failed'
+      setError(msg)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="register-page">
@@ -89,15 +107,18 @@ export default function Register() {
 
       <div className="form-section">
         {error && <div className="error-message">{error}</div>}
-        {info  && <div className="info-message">{info}</div>}
 
         <Webcam
           ref={webcamRef}
           audio={false}
-          videoConstraints={{ facingMode: "user" }}
+          videoConstraints={{ facingMode: 'user' }}
           className="webcam-feed"
         />
-        <button onClick={captureFace} className="btn capture-btn">
+        <button
+          onClick={captureFace}
+          className="btn capture-btn"
+          disabled={loading}
+        >
           Capture Face
         </button>
 
@@ -113,7 +134,6 @@ export default function Register() {
             />
             <label htmlFor="email">Email Address</label>
           </div>
-
           <div className="form-field">
             <input
               id="phone"
@@ -125,7 +145,6 @@ export default function Register() {
             />
             <label htmlFor="phone">Phone Number</label>
           </div>
-
           <div className="form-field">
             <input
               id="password"
@@ -138,8 +157,12 @@ export default function Register() {
             <label htmlFor="password">Password</label>
           </div>
 
-          <button type="submit" className="btn submit-btn" disabled={!!info}>
-            Register
+          <button
+            type="submit"
+            className="btn submit-btn"
+            disabled={loading}
+          >
+            {loading ? 'Registering…' : 'Register'}
           </button>
         </form>
 
@@ -149,5 +172,5 @@ export default function Register() {
         </div>
       </div>
     </div>
-  );
+  )
 }

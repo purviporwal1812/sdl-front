@@ -1,114 +1,141 @@
 // src/components/Login.js
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate }             from 'react-router-dom';
-import axios                              from 'axios';
-import Webcam                             from 'react-webcam';
-import * as faceapi                       from 'face-api.js';
+import { Link, useNavigate }                 from 'react-router-dom';
+import axios                                  from 'axios';
+import Webcam                                 from 'react-webcam';
+import * as faceapi                           from 'face-api.js';
 import './styles/Login.css';
 
 export default function Login() {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const navigate    = useNavigate();
 
-  // 1) Ensure every axios call includes cookies
+  console.log('[Login] ▶ Initializing component, backend =', BACKEND_URL);
   axios.defaults.withCredentials = true;
   axios.defaults.baseURL        = BACKEND_URL;
 
-  const [email,          setEmail]         = useState('');
-  const [password,       setPassword]      = useState('');
-  const [faceDescriptor, setFaceDescriptor]= useState(null);
-  const [error,          setError]         = useState('');
-  const [captureMessage, setCaptureMessage]= useState('');
-  const [resendSent,     setResendSent]    = useState(false);
-  const [modelsLoaded,   setModelsLoaded]  = useState(false);
+  const [email,          setEmail]           = useState('');
+  const [password,       setPassword]        = useState('');
+  const [faceDescriptor, setFaceDescriptor]  = useState(null);
+  const [error,          setError]           = useState('');
+  const [captureMessage, setCaptureMessage]  = useState('');
+  const [resendSent,     setResendSent]      = useState(false);
+  const [modelsLoaded,   setModelsLoaded]    = useState(false);
 
   const webcamRef = useRef(null);
 
-  // Load face-api models once
+  // Load face-api models
   useEffect(() => {
+    console.log('[Login] ▶ Loading face-api models from', `${window.location.origin}/models/`);
     const MODEL_URL = `${window.location.origin}/models/`;
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL + 'tiny_face_detector/'),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL + 'face_landmark_68/'),
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL + 'face_recognition/')
     ])
-    .then(() => setModelsLoaded(true))
-    .catch(err => console.error("[Login] Model load error:", err));
+      .then(() => {
+        console.log('[Login] ✔ face-api models loaded');
+        setModelsLoaded(true);
+      })
+      .catch(err => {
+        console.error('[Login] ✖ face-api model load error:', err);
+      });
   }, []);
 
-  // Capture face descriptor from webcam
+  // Capture face descriptor
   const captureFace = async () => {
+    console.log('[Login] ▶ captureFace() called');
     setError('');
     setCaptureMessage('');
+
     if (!modelsLoaded) {
-      return setError('Models still loading. Please wait a moment.');
+      console.warn('[Login] ⚠ Models not yet loaded');
+      return setError('Face detection models are still loading.');
     }
+
     const video = webcamRef.current?.video;
     if (!video) {
+      console.warn('[Login] ⚠ Webcam video element not ready');
       return setError('Webcam not ready.');
     }
+
     try {
-      const det = await faceapi
+      console.log('[Login] ▶ Running faceapi.detectSingleFace');
+      const detection = await faceapi
         .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
 
-      if (det) {
-        setFaceDescriptor(det.descriptor);
+      if (detection) {
+        console.log('[Login] ✔ Face detected, descriptor length =', detection.descriptor.length);
+        setFaceDescriptor(detection.descriptor);
         setCaptureMessage('✅ Face captured successfully!');
       } else {
-        setError('No face detected. Try again.');
+        console.warn('[Login] ✖ No face detected in frame');
+        setError('No face detected. Please try again.');
       }
     } catch (err) {
-      console.error("[Login] face-api error:", err);
-      setError('Face detection failed.');
+      console.error('[Login] ✖ Error during face detection:', err);
+      setError('Face detection failed. Try again.');
     }
   };
 
-  // Submit email+password+descriptor to login
+  // Submit login request
   const handleSubmit = async e => {
     e.preventDefault();
+    console.log('[Login] ▶ handleSubmit() called with', { email, password, faceDescriptorExists: !!faceDescriptor });
     setError('');
+    setCaptureMessage('');
+    setResendSent(false);
+
     if (!faceDescriptor) {
+      console.warn('[Login] ⚠ No face descriptor captured');
       return setError('Please capture your face before logging in.');
     }
 
+    const payload = {
+      email,
+      password,
+      face_descriptor: Array.from(faceDescriptor)
+    };
+    console.log('[Login] ▶ Sending login POST /users/login with payload:', payload);
+
     try {
-      await axios.post(
-        '/users/login',
-        {
-          email,
-          password,
-          face_descriptor: Array.from(faceDescriptor)
-        }
-      );
-      // on success the session cookie is already set; now go mark attendance
+      const response = await axios.post('/users/login', payload);
+      console.log('[Login] ✔ Login successful response:', response.data);
       navigate('/mark-attendance');
     } catch (err) {
+      console.error('[Login] ✖ Login error response:', err.response || err);
       const msg = err.response?.data?.message;
-      if (msg === 'Please verify your email before logging in.') {
+      if (msg === 'Please verify your email first.') {
+        console.warn('[Login] ⚠ User needs email verification');
         setError(
           <>
             Please verify your email. Didn’t get it?{' '}
-            <button onClick={handleResend} className="link-btn">
+            <button type="button" className="link-btn" onClick={handleResend}>
               Resend link
             </button>
           </>
         );
       } else {
-        setError(msg || 'Login failed. Check credentials.');
+        setError(msg || 'Login failed. Please check your credentials.');
       }
     }
   };
 
-  // Resend verification link if they never got it
+  // Resend verification link
   const handleResend = async () => {
+    console.log('[Login] ▶ handleResend() called for email:', email);
+    setError('');
+    setResendSent(false);
+
     try {
-      await axios.post('/users/resend-verification', { email });
+      const resp = await axios.post('/users/resend-verification', { email });
+      console.log('[Login] ✔ Resend verification response:', resp.data);
       setResendSent(true);
     } catch (err) {
-      console.error("[Login] resend error:", err);
-      setError('Failed to resend. Try again later.');
+      console.error('[Login] ✖ Resend verification error:', err.response || err);
+      setError('Failed to resend verification link.');
     }
   };
 
@@ -130,7 +157,12 @@ export default function Login() {
           className="webcam-feed"
           videoConstraints={{ facingMode: 'user' }}
         />
-        <button type="button" className="btn capture-btn" onClick={captureFace}>
+
+        <button
+          type="button"
+          className="btn capture-btn"
+          onClick={captureFace}
+        >
           Capture Face
         </button>
 
