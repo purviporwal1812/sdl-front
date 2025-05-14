@@ -10,13 +10,11 @@ export default function MarkAttendance() {
   const [rollNumber, setRollNumber] = useState("");
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  // 1. Route‑guard: verify session, then animate or redirect
   useEffect(() => {
-    // define an async verification function
     const verifySessionAndAnimate = async () => {
       try {
-        // hit a verify‑session endpoint (you need this on your backend)
-        await axios.get(`${BACKEND_URL}/users/verify-session`, {
+        // hit your GET /users/profile route to check auth
+        await axios.get(`${BACKEND_URL}/users/profile`, {
           withCredentials: true,
         });
 
@@ -42,7 +40,7 @@ export default function MarkAttendance() {
           }
         );
       } catch (err) {
-        // if verification fails, go back to login
+        // on failure, redirect to your frontend login route
         navigate("/users/login");
       }
     };
@@ -53,6 +51,7 @@ export default function MarkAttendance() {
   // 2. Logout handler
   const handleLogout = async () => {
     try {
+      // POST to the existing logout endpoint
       await axios.post(
         `${BACKEND_URL}/users/logout`,
         {},
@@ -80,6 +79,7 @@ export default function MarkAttendance() {
       async (pos) => {
         const { latitude: lat, longitude: lon } = pos.coords;
         try {
+          // POST to your /mark-attendance route (already correct)
           const res = await axios.post(
             `${BACKEND_URL}/mark-attendance`,
             { name, rollNumber, lat, lon },
