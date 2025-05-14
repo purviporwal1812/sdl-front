@@ -1,92 +1,77 @@
-/* Updated VerifyCode.jsx */
-import React, { useState, useEffect } from 'react'
-import { useNavigate, Link, useLocation } from 'react-router-dom'
-import axios from 'axios'
+// src/components/VerifyCode.jsx
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function VerifyCode() {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
-  const navigate = useNavigate()
-  const location = useLocation()
-  // get email from navigation state or fallback
-  const initialEmail = location.state?.email || ''
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [info, setInfo] = useState("");
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  const [email] = useState(initialEmail)
-  const [code, setCode] = useState('')
-  const [error, setError] = useState('')
-  const [info, setInfo] = useState('')
-
-  useEffect(() => {
-    if (!email) {
-      // if no email, redirect back to register
-      navigate('/users/register')
-    }
-  }, [email, navigate])
-
-  const handleVerify = async e => {
-    e.preventDefault()
-    setError(''); setInfo('')
+  const handleVerify = async (e) => {
+    e.preventDefault();
 
     try {
-      const { data } = await axios.post(
+      // 1. Submit the verification code (issues the session cookie)
+      const { data: verifyData } = await axios.post(
         `${BACKEND_URL}/users/verify-code`,
         { email, code },
         { withCredentials: true }
-      )
-      setInfo(data.message)
-      setTimeout(() => navigate('/mark-attendance'), 1000)
-    } catch (err) {
-      console.error('[VerifyCode] error:', err.response || err)
-      setError(err.response?.data?.message || 'Verification failed.')
-    }
-  }
+      );
+      setInfo(verifyData.message);
 
-  const handleResend = async () => {
-    setError(''); setInfo('')
-    try {
-      const { data } = await axios.post(
-        `${BACKEND_URL}/users/resend-verification`,
-        { email },
-        { withCredentials: true }
-      )
-      setInfo(data.message)
+      // 2. Immediately fetch the user profile to confirm the cookie is set
+      await axios.get(`${BACKEND_URL}/users/profile`, {
+        withCredentials: true,
+      });
+
+      // 3. If that succeeds, navigate to the protected attendance page
+      setTimeout(() => {
+        navigate("/mark-attendance");
+      }, 500);
     } catch (err) {
-      console.error('[VerifyCode] resend error:', err.response || err)
-      setError('Failed to resend code.')
+      console.error("Verification failed:", err);
+      if (err.response?.data?.message) {
+        setInfo(err.response.data.message);
+      } else {
+        setInfo("Verification failed. Try again.");
+      }
     }
-  }
+  };
 
   return (
-    <div className="verify-page">
-      <div className="verify-card">
-        <h2>Enter Verification Code for {email}</h2>
-        {error && <div className="error-message">{error}</div>}
-        {info && <div className="info-message">{info}</div>}
+    <div className="verify-code-container" style={{ maxWidth: 400, margin: "0 auto" }}>
+      <h1>Verify Your Email</h1>
+      <form onSubmit={handleVerify} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <label htmlFor="email">Email:</label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-        <form onSubmit={handleVerify} noValidate>
-          <div className="form-field">
-            <input
-              type="text"
-              placeholder=" "
-              value={code}
-              onChange={e => setCode(e.target.value)}
-              required
-            />
-            <label>6-Digit Code</label>
-          </div>
-          <button type="submit" className="btn verify-btn">
-            Verify Email
-          </button>
-        </form>
+        <label htmlFor="code">Verification Code:</label>
+        <input
+          id="code"
+          type="text"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          required
+        />
 
-        <button onClick={handleResend} className="link-btn">
-          Didn’t get a code? Resend
-        </button>
+        <button type="submit">Verify</button>
+      </form>
 
-        <div className="links-row">
-          <Link to="/users/register">Register</Link>
-          <Link to="/users/login">Login</Link>
-        </div>
-      </div>
+      {info && (
+        <p style={{ marginTop: 16, color: info.toLowerCase().includes("failed") ? "red" : "green" }}>
+          {info}
+        </p>
+      )}
     </div>
-  )
+  );
 }
