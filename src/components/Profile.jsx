@@ -179,7 +179,7 @@ export default function Profile() {
             </thead>
             <tbody>
               {history.map(entry => (
-                <tr key={entry.id}>
+                <tr key={entry._id}>
                   <td>{new Date(entry.created_at).toLocaleString()}</td>
                   <td>{entry.name}</td>
                   <td>{entry.rollnumber}</td>
